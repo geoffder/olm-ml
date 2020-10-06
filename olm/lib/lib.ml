@@ -36,7 +36,7 @@ end
 
 let olm_inbound_group_session_size =
   foreign "olm_inbound_group_session_size"
-    (void @-> returning int)
+    (void @-> returning size_t)
 
 let olm_inbound_group_session =
   foreign "olm_inbound_group_session"
@@ -49,12 +49,12 @@ let olm_inbound_group_session_last_error =
 let olm_clear_inbound_group_session =
   foreign "olm_clear_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
-     @-> returning int)           (* olm_error *)
+     @-> returning size_t)        (* olm_error *)
 
 let olm_pickle_inbound_group_session_length =
   foreign "olm_pickle_inbound_group_session_length"
     (ptr OlmInboundGroupSession.t (* session *)
-     @-> returning int)           (* olm_error *)
+     @-> returning size_t)        (* olm_error *)
 
 let olm_pickle_inbound_group_session =
   foreign "olm_pickle_inbound_group_session"
@@ -63,28 +63,28 @@ let olm_pickle_inbound_group_session =
      @-> int                      (* key_length *)
      @-> ptr void                 (* pickled *)
      @-> int                      (* pickled_length *)
-     @-> returning int)           (* olm_error *)
+     @-> returning size_t)        (* olm_error *)
 
 let olm_init_inbound_group_session =
   foreign "olm_init_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> int                      (* session_key *)
      @-> int                      (* session_key_length *)
-     @-> returning int)           (* olm_error *)
+     @-> returning size_t)        (* olm_error *)
 
 let olm_import_inbound_group_session =
   foreign "olm_import_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> int                      (* session_key *)
      @-> int                      (* session_key_length *)
-     @-> returning int)           (* olm_error *)
+     @-> returning size_t)        (* olm_error *)
 
 let olm_group_decrypt_max_plaintext_length =
   foreign "olm_group_decrypt_max_plaintext_length"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr int                  (* message *)
      @-> int                      (* message_length *)
-     @-> returning int)           (* olm_error *)
+     @-> returning size_t)        (* olm_error *)
 
 let olm_group_decrypt =
   foreign "olm_group_decrypt"
@@ -94,15 +94,15 @@ let olm_group_decrypt =
      @-> ptr int                  (* plaintext *)
      @-> int                      (* max_plaintext_length *)
      @-> ptr int                  (* message_index *)
-     @-> returning int)           (* length of decrpyted plain-text or olm_error *)
+     @-> returning size_t)        (* length of decrpyted plain-text or olm_error *)
 
 let olm_inbound_group_session_id_length =
   foreign "olm_inbound_group_session_id_length"
-    (ptr OlmInboundGroupSession.t @-> returning int)
+    (ptr OlmInboundGroupSession.t @-> returning size_t)
 
 let olm_inbound_group_session_id =
   foreign "olm_inbound_group_session_id"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr int                  (* id *)
      @-> int                      (* id_length *)
-     @-> returning int)           (* length of session id or olm_error *)
+     @-> returning size_t)        (* length of session id or olm_error *)
