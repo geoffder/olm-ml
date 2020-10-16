@@ -1,6 +1,11 @@
 open Ctypes
 open Foreign
 
+let libolm =
+  Dl.dlopen
+    ~filename:"/home/geoff/GitRepos/ocaml-olm/libolm/build/libolm.so"
+    ~flags:Dl.[RTLD_NOW]
+
 (* crypto.h defines *)
 let sha256_output_length            = 32
 let curve25519_key_length           = 32
@@ -50,14 +55,14 @@ end
 
 module OlmCurve25519PrivateKey = struct
   type t
-  let t : t structure typ = structure "_olm_Curve25519_private_key"
+  let t : t structure typ = structure "_olm_curve25519_private_key"
   let private_key         = field t "private_key" (array curve25519_key_length uint8_t)
   let ()                  = seal t
 end
 
 module OlmCurve25519KeyPair = struct
   type t
-  let t : t structure typ = structure "_olm_curve25519_private_key"
+  let t : t structure typ = structure "_olm_curve25519_key_pair"
   let public_key          = field t "public_key" OlmCurve25519PublicKey.t
   let private_key         = field t "private_key" OlmCurve25519PrivateKey.t
   let ()                  = seal t
@@ -79,15 +84,74 @@ end
 
 module OlmED25519KeyPair = struct
   type t
-  let t : t structure typ = structure "_olm_ed25519_private_key"
+  let t : t structure typ = structure "_olm_ed25519_key_pair"
   let public_key          = field t "public_key" OlmED25519PublicKey.t
   let private_key         = field t "private_key" OlmED25519PrivateKey.t
   let ()                  = seal t
 end
 
 module OlmErrorCode = struct
-  type t = unit ptr
-  let t : t typ = ptr void
+  type t =
+    | OLM_SUCCESS
+    | OLM_NOT_ENOUGH_RANDOM
+    | OLM_OUTPUT_BUFFER_TOO_SMALL
+    | OLM_BAD_MESSAGE_VERSION
+    | OLM_BAD_MESSAGE_FORMAT
+    | OLM_BAD_MESSAGE_MAC
+    | OLM_BAD_MESSAGE_KEY_ID
+    | OLM_INVALID_BASE64
+    | OLM_BAD_ACCOUNT_KEY
+    | OLM_UNKNOWN_PICKLE_VERSION
+    | OLM_CORRUPTED_PICKLE
+    | OLM_BAD_SESSION_KEY
+    | OLM_UNKNOWN_MESSAGE_INDEX
+    | OLM_BAD_LEGACY_ACCOUNT_PICKLE
+    | OLM_BAD_SIGNATURE
+    | OLM_INPUT_BUFFER_TOO_SMALL
+    | OLM_SAS_THEIR_KEY_NOT_SET
+
+  let of_int = function
+    | 0  -> OLM_SUCCESS
+    | 1  -> OLM_NOT_ENOUGH_RANDOM
+    | 2  -> OLM_OUTPUT_BUFFER_TOO_SMALL
+    | 3  -> OLM_BAD_MESSAGE_VERSION
+    | 4  -> OLM_BAD_MESSAGE_FORMAT
+    | 5  -> OLM_BAD_MESSAGE_MAC
+    | 6  -> OLM_BAD_MESSAGE_KEY_ID
+    | 7  -> OLM_INVALID_BASE64
+    | 8  -> OLM_BAD_ACCOUNT_KEY
+    | 9  -> OLM_UNKNOWN_PICKLE_VERSION
+    | 10 -> OLM_CORRUPTED_PICKLE
+    | 11 -> OLM_BAD_SESSION_KEY
+    | 12 -> OLM_UNKNOWN_MESSAGE_INDEX
+    | 13 -> OLM_BAD_LEGACY_ACCOUNT_PICKLE
+    | 14 -> OLM_BAD_SIGNATURE
+    | 15 -> OLM_INPUT_BUFFER_TOO_SMALL
+    | 16 -> OLM_SAS_THEIR_KEY_NOT_SET
+    | _ -> raise (Invalid_argument "Unexpected OlmErrorCode value.")
+
+  let to_int = function
+    | OLM_SUCCESS                   -> 0
+    | OLM_NOT_ENOUGH_RANDOM         -> 1
+    | OLM_OUTPUT_BUFFER_TOO_SMALL   -> 2
+    | OLM_BAD_MESSAGE_VERSION       -> 3
+    | OLM_BAD_MESSAGE_FORMAT        -> 4
+    | OLM_BAD_MESSAGE_MAC           -> 5
+    | OLM_BAD_MESSAGE_KEY_ID        -> 6
+    | OLM_INVALID_BASE64            -> 7
+    | OLM_BAD_ACCOUNT_KEY           -> 8
+    | OLM_UNKNOWN_PICKLE_VERSION    -> 9
+    | OLM_CORRUPTED_PICKLE          -> 10
+    | OLM_BAD_SESSION_KEY           -> 11
+    | OLM_UNKNOWN_MESSAGE_INDEX     -> 12
+    | OLM_BAD_LEGACY_ACCOUNT_PICKLE -> 13
+    | OLM_BAD_SIGNATURE             -> 14
+    | OLM_INPUT_BUFFER_TOO_SMALL    -> 15
+    | OLM_SAS_THEIR_KEY_NOT_SET     -> 16
+
+  let t = view ~read:of_int ~write:to_int int
+  (* type t = Unsigned.Size_t.t
+   * let t : t typ = size_t *)
 end
 
 module OlmInboundGroupSession = struct
@@ -111,29 +175,29 @@ module OlmOutboundGroupSession = struct
 end
 
 let olm_inbound_group_session_size =
-  foreign "olm_inbound_group_session_size"
+  foreign ~from:libolm "olm_inbound_group_session_size"
     (void @-> returning size_t)
 
 let olm_inbound_group_session =
-  foreign "olm_inbound_group_session"
+  foreign ~from:libolm "olm_inbound_group_session"
     (void @-> returning (ptr OlmInboundGroupSession.t))
 
 let olm_inbound_group_session_last_error =
-  foreign "olm_inbound_group_session_last_error"
+  foreign ~from:libolm "olm_inbound_group_session_last_error"
     (ptr OlmInboundGroupSession.t @-> returning (ptr char))
 
 let olm_clear_inbound_group_session =
-  foreign "olm_clear_inbound_group_session"
+  foreign ~from:libolm "olm_clear_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> returning size_t)        (* olm_error *)
 
 let olm_pickle_inbound_group_session_length =
-  foreign "olm_pickle_inbound_group_session_length"
+  foreign ~from:libolm "olm_pickle_inbound_group_session_length"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> returning size_t)        (* olm_error *)
 
 let olm_pickle_inbound_group_session =
-  foreign "olm_pickle_inbound_group_session"
+  foreign ~from:libolm "olm_pickle_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr void                 (* key *)
      @-> size_t                   (* key_length *)
@@ -142,7 +206,7 @@ let olm_pickle_inbound_group_session =
      @-> returning size_t)        (* olm_error *)
 
 let olm_unpickle_inbound_group_session =
-  foreign "olm_unpickle_inbound_group_session"
+  foreign ~from:libolm "olm_unpickle_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr void                 (* key *)
      @-> size_t                   (* key_length *)
@@ -151,28 +215,28 @@ let olm_unpickle_inbound_group_session =
      @-> returning size_t)        (* olm_error *)
 
 let olm_init_inbound_group_session =
-  foreign "olm_init_inbound_group_session"
+  foreign ~from:libolm "olm_init_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> uint8_t                  (* session_key *)
      @-> size_t                   (* session_key_length *)
      @-> returning size_t)        (* olm_error *)
 
 let olm_import_inbound_group_session =
-  foreign "olm_import_inbound_group_session"
+  foreign ~from:libolm "olm_import_inbound_group_session"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> uint8_t                  (* session_key *)
      @-> size_t                   (* session_key_length *)
      @-> returning size_t)        (* olm_error *)
 
 let olm_group_decrypt_max_plaintext_length =
-  foreign "olm_group_decrypt_max_plaintext_length"
+  foreign ~from:libolm "olm_group_decrypt_max_plaintext_length"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr uint8_t              (* message *)
      @-> size_t                   (* message_length *)
      @-> returning size_t)        (* olm_error *)
 
 let olm_group_decrypt =
-  foreign "olm_group_decrypt"
+  foreign ~from:libolm "olm_group_decrypt"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr uint8_t              (* message *)
      @-> size_t                   (* message_length *)
@@ -182,26 +246,26 @@ let olm_group_decrypt =
      @-> returning size_t)        (* length of decrpyted plain-text or olm_error *)
 
 let olm_inbound_group_session_id_length =
-  foreign "olm_inbound_group_session_id_length"
+  foreign ~from:libolm "olm_inbound_group_session_id_length"
     (ptr OlmInboundGroupSession.t @-> returning size_t)
 
 let olm_inbound_group_session_id =
-  foreign "olm_inbound_group_session_id"
+  foreign ~from:libolm "olm_inbound_group_session_id"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr uint8_t              (* id *)
      @-> size_t                   (* id_length *)
      @-> returning size_t)        (* length of session id or olm_error *)
 
 let olm_inbound_group_session_first_known_index =
-  foreign "olm_inbound_group_session_first_known_index"
+  foreign ~from:libolm "olm_inbound_group_session_first_known_index"
     (ptr OlmInboundGroupSession.t @-> returning uint32_t)
 
 let olm_inbound_group_session_is_verified =
-  foreign "olm_inbound_group_session_is_verified"
+  foreign ~from:libolm "olm_inbound_group_session_is_verified"
     (ptr OlmInboundGroupSession.t @-> returning int)
 
 let olm_export_inbound_group_session_length =
-  foreign "olm_export_inbound_group_session_length"
+  foreign ~from:libolm "olm_export_inbound_group_session_length"
     (ptr OlmInboundGroupSession.t (* session *)
      @-> ptr uint8_t              (* key *)
      @-> size_t                   (* key_length *)
@@ -209,29 +273,29 @@ let olm_export_inbound_group_session_length =
      @-> returning size_t)        (* length of ratchet key or olm_error *)
 
 let olm_outbound_group_session_size =
-  foreign "olm_outbound_group_session_size"
+  foreign ~from:libolm "olm_outbound_group_session_size"
     (void @-> returning size_t)
 
 let olm_outbound_group_session =
-  foreign "olm_outbound_group_session"
+  foreign ~from:libolm "olm_outbound_group_session"
     (void @-> returning (ptr OlmOutboundGroupSession.t))
 
 let olm_outbound_group_session_last_error =
-  foreign "olm_outbound_group_session_last_error"
+  foreign ~from:libolm "olm_outbound_group_session_last_error"
     (ptr OlmOutboundGroupSession.t @-> returning (ptr char))
 
 let olm_clear_outbound_group_session =
-  foreign "olm_clear_outbound_group_session"
+  foreign ~from:libolm "olm_clear_outbound_group_session"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> returning size_t)         (* olm_error *)
 
 let olm_pickle_outbound_group_session_length =
-  foreign "olm_pickle_outbound_group_session_length"
+  foreign ~from:libolm "olm_pickle_outbound_group_session_length"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> returning size_t)         (* olm_error *)
 
 let olm_pickle_outbound_group_session =
-  foreign "olm_pickle_outbound_group_session"
+  foreign ~from:libolm "olm_pickle_outbound_group_session"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> ptr void                  (* key *)
      @-> size_t                    (* key_length *)
@@ -240,7 +304,7 @@ let olm_pickle_outbound_group_session =
      @-> returning size_t)         (* olm_error *)
 
 let olm_unpickle_outbound_group_session =
-  foreign "olm_unpickle_outbound_group_session"
+  foreign ~from:libolm "olm_unpickle_outbound_group_session"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> ptr void                  (* key *)
      @-> size_t                    (* key_length *)
@@ -249,25 +313,25 @@ let olm_unpickle_outbound_group_session =
      @-> returning size_t)         (* olm_error *)
 
 let olm_init_outbound_group_session_random_length =
-  foreign "olm_init_outbound_group_session_random_length"
+  foreign ~from:libolm "olm_init_outbound_group_session_random_length"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> returning size_t)         (* olm_error *)
 
 let olm_init_outbound_group_session =
-  foreign "olm_init_outbound_group_session"
+  foreign ~from:libolm "olm_init_outbound_group_session"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> ptr uint8_t               (* random *)
      @-> size_t                    (* random_length *)
      @-> returning size_t)         (* olm_error *)
 
 let olm_group_encrypt_message_length =
-  foreign "olm_group_encrypt_message_length"
+  foreign ~from:libolm "olm_group_encrypt_message_length"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> size_t                    (* plaintext_length *)
      @-> returning size_t)         (* # bytes that will be created by encryption *)
 
 let olm_group_encrypt =
-  foreign "olm_group_encrypt"
+  foreign ~from:libolm "olm_group_encrypt"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> ptr uint8_t               (* plaintext *)
      @-> size_t                    (* plaintext_length *)
@@ -276,27 +340,28 @@ let olm_group_encrypt =
      @-> returning size_t)         (* length of encrypted message or olm_error *)
 
 let olm_outbound_group_session_id_length =
-  foreign "olm_outbound_group_session_id_length"
+  foreign ~from:libolm "olm_outbound_group_session_id_length"
     (ptr OlmOutboundGroupSession.t @-> returning size_t)
 
 let olm_outbound_group_session_id =
-  foreign "olm_outbound_group_session_id"
+  foreign ~from:libolm "olm_outbound_group_session_id"
     (ptr OlmOutboundGroupSession.t (* session *)
      @-> ptr uint8_t               (* id *)
      @-> size_t                    (* id_length *)
      @-> returning size_t)         (* length of session id or olm_error *)
 
 let olm_outbound_group_session_message_index =
-  foreign "olm_outbound_group_session_message_index"
+  foreign ~from:libolm "olm_outbound_group_session_message_index"
     (ptr OlmOutboundGroupSession.t @-> returning uint32_t)
 
 let olm_outbound_group_session_key_length =
-  foreign "olm_outbound_group_session_key_length"
+  foreign ~from:libolm "olm_outbound_group_session_key_length"
     (ptr OlmOutboundGroupSession.t @-> returning size_t)
 
-let olm_export_outbound_group_session_key =
-  foreign "olm_export_outbound_group_session_key"
-    (ptr OlmOutboundGroupSession.t (* session *)
-     @-> ptr uint8_t               (* key *)
-     @-> size_t                    (* key_length *)
-     @-> returning size_t)         (* length of ratchet key or olm_error *)
+(* NOTE: Not found? *)
+(* let olm_export_outbound_group_session_key =
+ *   foreign ~from:libolm "olm_export_outbound_group_session_key"
+ *     (ptr OlmOutboundGroupSession.t (\* session *\)
+ *      @-> ptr uint8_t               (\* key *\)
+ *      @-> size_t                    (\* key_length *\)
+ *      @-> returning size_t)         (\* length of ratchet key or olm_error *\) *)
