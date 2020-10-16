@@ -150,8 +150,6 @@ module OlmErrorCode = struct
     | OLM_SAS_THEIR_KEY_NOT_SET     -> 16
 
   let t = view ~read:of_int ~write:to_int int
-  (* type t = Unsigned.Size_t.t
-   * let t : t typ = size_t *)
 end
 
 module OlmInboundGroupSession = struct
@@ -163,6 +161,9 @@ module OlmInboundGroupSession = struct
   let signing_key_verified = field t "signing_key_verified" int
   let last_error           = field t "last_error" OlmErrorCode.t
   let ()                   = seal t
+
+  let allocate_void () : unit ptr =
+    allocate_n t ~count:1 |> coerce (ptr t) (ptr void)
 end
 
 module OlmOutboundGroupSession = struct
@@ -172,6 +173,9 @@ module OlmOutboundGroupSession = struct
   let signing_key         = field t "signing_key" OlmED25519KeyPair.t
   let last_error          = field t "last_error" OlmErrorCode.t
   let ()                  = seal t
+
+  let allocate_void () : unit ptr =
+    allocate_n t ~count:1 |> coerce (ptr t) (ptr void)
 end
 
 let olm_inbound_group_session_size =
@@ -180,7 +184,7 @@ let olm_inbound_group_session_size =
 
 let olm_inbound_group_session =
   foreign ~from:libolm "olm_inbound_group_session"
-    (void @-> returning (ptr OlmInboundGroupSession.t))
+    ((ptr void) @-> returning (ptr OlmInboundGroupSession.t))
 
 let olm_inbound_group_session_last_error =
   foreign ~from:libolm "olm_inbound_group_session_last_error"
@@ -278,7 +282,7 @@ let olm_outbound_group_session_size =
 
 let olm_outbound_group_session =
   foreign ~from:libolm "olm_outbound_group_session"
-    (void @-> returning (ptr OlmOutboundGroupSession.t))
+    ((ptr void) @-> returning (ptr OlmOutboundGroupSession.t))
 
 let olm_outbound_group_session_last_error =
   foreign ~from:libolm "olm_outbound_group_session_last_error"
@@ -357,11 +361,3 @@ let olm_outbound_group_session_message_index =
 let olm_outbound_group_session_key_length =
   foreign ~from:libolm "olm_outbound_group_session_key_length"
     (ptr OlmOutboundGroupSession.t @-> returning size_t)
-
-(* NOTE: Not found? *)
-(* let olm_export_outbound_group_session_key =
- *   foreign ~from:libolm "olm_export_outbound_group_session_key"
- *     (ptr OlmOutboundGroupSession.t (\* session *\)
- *      @-> ptr uint8_t               (\* key *\)
- *      @-> size_t                    (\* key_length *\)
- *      @-> returning size_t)         (\* length of ratchet key or olm_error *\) *)
