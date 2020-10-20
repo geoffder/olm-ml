@@ -32,14 +32,14 @@ module Megolm = struct
   let ()                  = seal t
 end
 
-module Aes256Key = struct
+module OlmAes256Key = struct
   type t
   let t : t structure typ = structure "_olm_aes256_key"
   let key                 = field t "key" (array aes256_key_length uint8_t)
   let ()                  = seal t
 end
 
-module Aes256Iv = struct
+module OlmAes256Iv = struct
   type t
   let t : t structure typ = structure "_olm_aes256_iv"
   let iv                  = field t "iv" (array aes256_iv_length uint8_t)
@@ -149,7 +149,30 @@ module OlmErrorCode = struct
     | OLM_INPUT_BUFFER_TOO_SMALL    -> 15
     | OLM_SAS_THEIR_KEY_NOT_SET     -> 16
 
+  let to_string = function
+    | OLM_SUCCESS                   -> "olm_success"
+    | OLM_NOT_ENOUGH_RANDOM         -> "olm_not_enough_random"
+    | OLM_OUTPUT_BUFFER_TOO_SMALL   -> "olm_output_buffer_too_small"
+    | OLM_BAD_MESSAGE_VERSION       -> "olm_bad_message_version"
+    | OLM_BAD_MESSAGE_FORMAT        -> "olm_bad_message_format"
+    | OLM_BAD_MESSAGE_MAC           -> "olm_bad_message_mac"
+    | OLM_BAD_MESSAGE_KEY_ID        -> "olm_bad_message_key_id"
+    | OLM_INVALID_BASE64            -> "olm_invalid_base64"
+    | OLM_BAD_ACCOUNT_KEY           -> "olm_bad_account_key"
+    | OLM_UNKNOWN_PICKLE_VERSION    -> "olm_unknown_pickle_version"
+    | OLM_CORRUPTED_PICKLE          -> "olm_corrupted_pickle"
+    | OLM_BAD_SESSION_KEY           -> "olm_bad_session_key"
+    | OLM_UNKNOWN_MESSAGE_INDEX     -> "olm_unknown_message_index"
+    | OLM_BAD_LEGACY_ACCOUNT_PICKLE -> "olm_bad_legacy_account_pickle"
+    | OLM_BAD_SIGNATURE             -> "olm_bad_signature"
+    | OLM_INPUT_BUFFER_TOO_SMALL    -> "olm_input_buffer_too_small"
+    | OLM_SAS_THEIR_KEY_NOT_SET     -> "olm_sas_their_key_not_set"
+
   let t = view ~read:of_int ~write:to_int int
+
+  let _to_string =
+    foreign ~from:libolm "_olm_error_to_string"
+      (t @-> returning (ptr char))
 end
 
 module OlmInboundGroupSession = struct
@@ -720,4 +743,115 @@ let olm_ed25519_verify =
      @-> size_t            (* message_length *)
      @-> ptr void          (* signature *)
      @-> size_t            (* signature_length *)
-     @-> returning size_t) (* olm_errror on failure (?) *)
+     @-> returning size_t) (* olm_error on failure (?) *)
+
+(* base64.h *)
+
+let _olm_encode_base64_length =
+  foreign ~from:libolm "_olm_encode_base64_length"
+    (size_t @-> returning size_t)
+
+let _olm_encode_base64 =
+  foreign ~from:libolm "_olm_encode_base64"
+    (ptr uint8_t           (* input *)
+     @-> size_t            (* input_length *)
+     @-> ptr uint8_t       (* output *)
+     @-> returning size_t) (* number of bytes encoded *)
+
+let _olm_decode_base64_length =
+  foreign ~from:libolm "_olm_decode_base64_length"
+    (size_t @-> returning size_t)
+
+let _olm_decode_base64 =
+  foreign ~from:libolm "_olm_decode_base64"
+    (ptr uint8_t           (* input *)
+     @-> size_t            (* input_length *)
+     @-> ptr uint8_t       (* output *)
+     @-> returning size_t) (* number of bytes encoded *)
+
+(* crypto.h *)
+
+let _olm_crypto_aes_encrypt_cbc_length =
+  foreign ~from:libolm "_olm_crypto_aes_encrypt_cbc_length"
+    (size_t @-> returning size_t)
+
+let _olm_crypto_aes_encrypt_cbc =
+  foreign ~from:libolm "_olm_crypto_aes_encrypt_cbc"
+    (ptr OlmAes256Key.t    (* key *)
+     @-> ptr OlmAes256Iv.t (* iv *)
+     @-> ptr uint8_t       (* input *)
+     @-> size_t            (* input_length *)
+     @-> ptr uint8_t       (* output *)
+     @-> returning void)
+
+let _olm_crypto_aes_decrypt_cbc =
+  foreign ~from:libolm "_olm_crypto_aes_decrypt_cbc"
+    (ptr OlmAes256Key.t     (* key *)
+     @-> ptr OlmAes256Iv.t  (* iv *)
+     @-> ptr uint8_t        (* input *)
+     @-> size_t             (* input_length *)
+     @-> ptr uint8_t        (* output *)
+     @-> returning uint8_t) (* length of plaintext without padding on success *)
+
+let _olm_crypto_sha256 =
+  foreign ~from:libolm "_olm_crypto_sha256"
+    (ptr uint8_t         (* input *)
+     @-> size_t          (* input_length *)
+     @-> ptr uint8_t     (* output *)
+     @-> returning void)
+
+let _olm_crypto_hmac_sha256 =
+  foreign ~from:libolm "_olm_crypto_hmac_sha256"
+    (ptr uint8_t         (* key *)
+     @-> size_t          (* key_length *)
+     @-> ptr uint8_t     (* input *)
+     @-> size_t          (* input_length *)
+     @-> ptr uint8_t     (* output *)
+     @-> returning void)
+
+let _olm_crypto_hkdf_sha256 =
+  foreign ~from:libolm "_olm_crypto_hkdf_sha256"
+    (ptr uint8_t         (* input *)
+     @-> size_t          (* input_length *)
+     @-> ptr uint8_t     (* info *)
+     @-> size_t          (* info_length *)
+     @-> ptr uint8_t     (* salt *)
+     @-> size_t          (* salt_length *)
+     @-> ptr uint8_t     (* output *)
+     @-> size_t          (* output_length *)
+     @-> returning void)
+
+let _olm_crypto_curve25519_generate_key =
+  foreign ~from:libolm "_olm_crypto_curve25519_generate_key"
+    (ptr uint8_t                    (* random_32_bytes *)
+     @-> ptr OlmCurve25519KeyPair.t (* output *)
+     @-> returning void)
+
+let _olm_crypto_curve25519_shared_secret =
+  foreign ~from:libolm "_olm_crypto_curve25519_shared_secret"
+    (ptr OlmCurve25519KeyPair.t       (* our_key *)
+     @-> ptr OlmCurve25519PublicKey.t (* their_key *)
+     @-> ptr uint8_t                  (* output *)
+     @-> returning void)
+
+let _olm_crypto_ed25519_generate_key =
+  foreign ~from:libolm "_olm_crypto_ed25519_generate_key"
+    (ptr uint8_t                 (* random_bytes *)
+     @-> ptr OlmED25519KeyPair.t (* output *)
+     @-> returning void)
+
+let _olm_crypto_ed25519_sign =
+  foreign ~from:libolm "_olm_crypto_ed25519_sign"
+    (ptr OlmED25519KeyPair.t (* our_key *)
+     @-> ptr uint8_t         (* message *)
+     @-> size_t              (* message_length *)
+     @-> ptr uint8_t         (* output *)
+     @-> returning void)
+
+let _olm_crypto_ed25519_verify =
+  foreign ~from:libolm "_olm_crypto_ed25519_verify"
+    (ptr OlmED25519PublicKey.t (* their_key *)
+     @-> ptr uint8_t           (* message *)
+     @-> size_t                (* message_length *)
+     @-> ptr uint8_t           (* signature *)
+     @-> returning int)        (* non-zero if valid *)
