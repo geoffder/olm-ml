@@ -938,3 +938,109 @@ let _olm_decode_group_message =
      @-> size_t                             (* signature_length *)
      @-> ptr OlmDecodeGroupMessageResults.t (* results *)
      @-> returning void)
+
+(* pickle.h *)
+
+let _olm_pickle_uint32 =
+  foreign ~from:libolm "_olm_pickle_uint32"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr uint32_t             (* value *)
+     @-> returning (ptr uint8_t)) (* new position (?) *)
+
+let _olm_unpickle_uint32 =
+  foreign ~from:libolm "_olm_unpickle_uint32"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr uint8_t              (* end *)
+     @-> ptr uint32_t             (* value *)
+     @-> returning (ptr uint8_t)) (* new position (?) *)
+
+let _olm_pickle_bool =
+  foreign ~from:libolm "_olm_pickle_bool"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr int                  (* value *)
+     @-> returning (ptr uint8_t)) (* new position (?) *)
+
+let _olm_unpickle_bool =
+  foreign ~from:libolm "_olm_unpickle_bool"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr uint8_t              (* end *)
+     @-> ptr int                  (* value *)
+     @-> returning (ptr uint8_t)) (* new position (?) *)
+
+let _olm_pickle_bytes =
+  foreign ~from:libolm "_olm_pickle_bytes"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr uint8_t              (* bytes *)
+     @-> size_t                   (* bytes_length *)
+     @-> returning (ptr uint8_t)) (* new position (?) *)
+
+let _olm_unpickle_bytes =
+  foreign ~from:libolm "_olm_unpickle_bytes"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr uint8_t              (* end *)
+     @-> ptr uint8_t              (* bytes *)
+     @-> size_t                   (* bytes_length *)
+     @-> returning (ptr uint8_t)) (* new position (?) *)
+
+let _olm_pickle_ed25519_public_key_length =
+  foreign ~from:libolm "_olm_pickle_ed25519_public_key_length"
+    (ptr OlmED25519PublicKey.t @-> returning size_t)
+
+let _olm_pickle_ed25519_public_key =
+  foreign ~from:libolm "_olm_pickle_ed25519_public_key"
+    (ptr uint8_t                   (* pos *)
+     @-> ptr OlmED25519PublicKey.t (* value *)
+     @-> returning (ptr uint8_t))  (* pointer to next free space in the buffer *)
+
+let _olm_unpickle_ed25519_public_key =
+  foreign ~from:libolm "_olm_unpickle_ed25519_public_key"
+    (ptr uint8_t                   (* pos *)
+     @-> ptr uint8_t               (* end *)
+     @-> ptr OlmED25519PublicKey.t (* value *)
+     @-> returning (ptr uint8_t))  (* pointer to next item in the buffer *)
+
+let _olm_pickle_ed25519_key_pair_length =
+  foreign ~from:libolm "_olm_pickle_ed25519_key_pair_length"
+    (ptr OlmED25519KeyPair.t @-> returning size_t)
+
+let _olm_pickle_ed25519_key_pair =
+  foreign ~from:libolm "_olm_pickle_ed25519_key_pair"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr OlmED25519KeyPair.t  (* value *)
+     @-> returning (ptr uint8_t)) (* pointer to next free space in the buffer *)
+
+let _olm_unpickle_ed25519_key_pair =
+  foreign ~from:libolm "_olm_unpickle_ed25519_key_pair"
+    (ptr uint8_t                  (* pos *)
+     @-> ptr uint8_t              (* end *)
+     @-> ptr OlmED25519KeyPair.t  (* value *)
+     @-> returning (ptr uint8_t)) (* pointer to next item in the buffer *)
+
+(* pickle_encoding.h *)
+
+let _olm_enc_output_length =
+  foreign ~from:libolm "_olm_enc_output_length"
+    (size_t @-> returning size_t)
+
+let _olm_enc_output_pos =
+  foreign ~from:libolm "_olm_enc_output_pos"
+    (ptr uint8_t                  (* output *)
+     @-> size_t                   (* raw_length *)
+     @-> returning (ptr uint8_t)) (* point in output buffer to be written to *)
+
+let _olm_enc_output =
+  foreign ~from:libolm "_olm_enc_output"
+    (ptr uint8_t           (* key *)
+     @-> size_t            (* key_length *)
+     @-> ptr uint8_t       (* pickle *)
+     @-> size_t            (* raw_length *)
+     @-> returning size_t) (* number of bytes in encoded pickle *)
+
+let _olm_enc_input =
+  foreign ~from:libolm "_olm_enc_input"
+    (ptr uint8_t            (* key *)
+     @-> size_t             (* key_length *)
+     @-> ptr uint8_t        (* input *)
+     @-> size_t             (* b64_length *)
+     @-> ptr OlmErrorCode.t (* last_error *)
+     @-> returning size_t)  (* bytes in decoded pickle or olm_error *)
