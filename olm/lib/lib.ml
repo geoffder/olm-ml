@@ -855,3 +855,86 @@ let _olm_crypto_ed25519_verify =
      @-> size_t                (* message_length *)
      @-> ptr uint8_t           (* signature *)
      @-> returning int)        (* non-zero if valid *)
+
+(* megolm.h *)
+
+let megolm_init =
+  foreign ~from:libolm "megolm_init"
+    (ptr Megolm.t        (* megolm *)
+     @-> ptr uint8_t     (* random_data *)
+     @-> uint32_t        (* counter *)
+     @-> returning void)
+
+let megolm_pickle_length =
+  foreign ~from:libolm "megolm_pickle_length"
+    (ptr Megolm.t @-> returning size_t)
+
+let megolm_pickle =
+  foreign ~from:libolm "megolm_pickle"
+    (ptr Megolm.t                 (* megolm *)
+     @-> ptr uint8_t              (* pos *)
+     @-> returning (ptr uint8_t)) (* pointer to next free space in the buffer *)
+
+let megolm_unpickle =
+  foreign ~from:libolm "megolm_unpickle"
+    (ptr Megolm.t                 (* megolm *)
+     @-> ptr uint8_t              (* pos *)
+     @-> ptr uint8_t              (* end *)
+     @-> returning (ptr uint8_t)) (* pointer to next item in the buffer *)
+
+let megolm_advance =
+  foreign ~from:libolm "megolm_advance"
+    (ptr Megolm.t @-> returning void)
+
+let megolm_advance_to =
+  foreign ~from:libolm "megolm_advance_to"
+    (ptr Megolm.t        (* megolm *)
+     @-> uint32_t        (* advance_to *)
+     @-> returning void)
+
+(* memory.h *)
+
+let _olm_unset =
+  foreign ~from:libolm "_olm_unset"
+    (ptr void            (* buffer *)
+     @-> size_t          (* buffer_length *)
+     @-> returning void)
+
+(* message.h *)
+
+module OlmDecodeGroupMessageResults = struct
+  type t
+  let t : t structure typ = structure "_OlmDecodeGroupMessageResults"
+  let version             = field t "version" uint8_t
+  let message_index       = field t "message_index" uint32_t
+  let has_message_index   = field t "has_message_index" int
+  let ciphertext          = field t "ciphertext" (ptr uint8_t)
+  let ciphertext_length   = field t "ciphertext_length" size_t
+  let ()                  = seal t
+end
+
+let _olm_encode_group_message_length =
+  foreign ~from:libolm "_olm_encode_group_message_length"
+    (uint32_t              (* chain_index *)
+     @-> size_t            (* ciphertext_length *)
+     @-> size_t            (* mac_length *)
+     @-> size_t            (* signature_length *)
+     @-> returning size_t) (* length of buffer needed to hold a group message *)
+
+let _olm_encode_group_message =
+  foreign ~from:libolm "_olm_encode_group_message"
+    (uint8_t               (* version *)
+     @-> uint32_t          (* message_index *)
+     @-> size_t            (* ciphertext_length *)
+     @-> ptr uint8_t       (* output *)
+     @-> ptr (ptr uint8_t) (* ciphertext_ptr *)
+     @-> returning size_t) (* size of message, up to the MAC *)
+
+let _olm_decode_group_message =
+  foreign ~from:libolm "_olm_decode_group_message"
+    (ptr uint8_t                            (* input *)
+     @-> size_t                             (* input_length *)
+     @-> size_t                             (* mac_length *)
+     @-> size_t                             (* signature_length *)
+     @-> ptr OlmDecodeGroupMessageResults.t (* results *)
+     @-> returning void)
