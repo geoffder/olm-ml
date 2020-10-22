@@ -11,31 +11,29 @@
 ;   (foreign_archives vendor/libolm/build/olm))
 ;
 ;
-(install
- (section lib)
- (package olm)
- (files
-  (vendor/libolm/include/olm/crypto.h as olm/crypto.h)
-  (vendor/libolm/include/olm/error.h as olm/error.h)
-  (vendor/libolm/include/olm/inbound_group_session.h as olm/inbound_group_session.h)
-  (vendor/libolm/include/olm/megolm.h as olm/megolm.h)
-  (vendor/libolm/include/olm/olm.h as olm/olm.h)
-  (vendor/libolm/include/olm/outbound_group_session.h as olm/outbound_group_session.h)
-  (vendor/libolm/include/olm/pk.h as olm/pk.h)
-  (vendor/libolm/include/olm/sas.h as olm/sas.h)))
+; (install
+;  (section lib)
+;  (package olm)
+;  (files
+;   (vendor/libolm/include/olm/crypto.h as olm/crypto.h)
+;   (vendor/libolm/include/olm/error.h as olm/error.h)
+;   (vendor/libolm/include/olm/inbound_group_session.h as olm/inbound_group_session.h)
+;   (vendor/libolm/include/olm/megolm.h as olm/megolm.h)
+;   (vendor/libolm/include/olm/olm.h as olm/olm.h)
+;   (vendor/libolm/include/olm/outbound_group_session.h as olm/outbound_group_session.h)
+;   (vendor/libolm/include/olm/pk.h as olm/pk.h)
+;   (vendor/libolm/include/olm/sas.h as olm/sas.h)))
 
 ; Type bindings (Olm_c_generated_types).
 (library
  (name olm_c_type_descriptions)
  (public_name olm.c_type_descriptions)
  (modules Olm_c_type_descriptions)
- ; (foreign_archives vendor/libolm/build/olm)
  (libraries ctypes))
 
 (executable
  (name generate_types_start)
  (modules Generate_types_start)
- ; (foreign_archives vendor/libolm/build/olm)
  (foreign_archives olm)
  (libraries ctypes.stubs olm_c_type_descriptions))
 
@@ -43,23 +41,18 @@
  (with-stdout-to generate_types_step_2.c
   (run ./generate_types_start.exe)))
 
-; Based partially on
-;   https://github.com/avsm/ocaml-yaml/blob/master/types/stubgen/jbuild#L20
 (rule
  (targets generate_types_step_2.exe)
- (deps (:c generate_types_step_2.c) (source_tree vendor/libolm) (file vendor/libolm/build/libolm.a))
+ (deps
+  (:c generate_types_step_2.c)
+  (source_tree vendor/libolm/include)
+  (source_tree vendor/libolm/src)
+  (file vendor/libolm/build/libolm.a))
  (action (bash "\
   %{cc} %{c} \
   -I '%{lib:ctypes:.}' \
   -I %{ocaml_where} \
-  -I vendor/libolm/include -o %{targets}")))
- ; (action (bash "\
- ;  %{cc} %{c} \
- ;  -I '%{lib:ctypes:.}' \
- ;  -I %{ocaml_where} \
- ;  -I /home/geoff/GitRepos/ocaml-olm/olm/c/vendor/olm/include/olm -o %{targets}")))
- ; (action (bash "\
- ;  %{cc} %{c} \
- ;  -I '%{lib:ctypes:.}' \
- ;  -I %{ocaml_where} \
- ;  -l vendor/libolm/build/libolm.a -o %{targets}")))
+  -I vendor/libolm/include \
+  -I vendor/libolm/src \
+  -I vendor/helpers \
+  -o %{targets}")))

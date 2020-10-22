@@ -39,7 +39,7 @@ module ErrorCode = struct
 end
 
 module Descriptions (F : Cstubs.Types.TYPE) = struct
-  (* open Ctypes *)
+  open Ctypes
   open F
 
   (* crypto.h constants *)
@@ -94,7 +94,7 @@ module Descriptions (F : Cstubs.Types.TYPE) = struct
     let olm_input_buffer_too_small    = constant "OLM_INPUT_BUFFER_TOO_SMALL"    int64_t
     let olm_sas_their_key_not_set     = constant "OLM_SAS_THEIR_KEY_NOT_SET"     int64_t
 
-    let t = enum "OlmErrorCode" ~typedef:true
+    let t = enum "OlmErrorCode"
         ErrorCode.
           [ Success               , olm_success
           ; NotEnoughRandom       , olm_not_enough_random
@@ -117,139 +117,139 @@ module Descriptions (F : Cstubs.Types.TYPE) = struct
         ~unexpected:(fun _ -> assert false)
   end
 
-  (* module Aes256Key = struct
-   *   type t = [ `Aes256Key ] structure
-   *   let t : t typ = typedef (structure "`Aes256Key") "_olm_aes256_key"
-   *   let key       = field t "key" (array aes256_key_length uint8_t)
-   *   let ()        = seal t
-   * end
-   *
-   * module Aes256Iv = struct
-   *   type t = [ `Aes256Iv ] structure
-   *   let t : t typ = typedef (structure "`Aes256Iv") "_olm_aes256_iv"
-   *   let iv        = field t "iv" (array aes256_iv_length uint8_t)
-   *   let ()        = seal t
-   * end
-   *
-   * module Curve25519PublicKey = struct
-   *   type t = [ `Curve25519PublicKey ] structure
-   *   let t : t typ  = typedef (structure "`Curve25519PublicKey") "_olm_curve25519_public_key"
-   *   let public_key = field t "public_key" (array curve25519_key_length uint8_t)
-   *   let ()         = seal t
-   * end
-   *
-   * module Curve25519PrivateKey = struct
-   *   type t = [ `Curve25519PrivateKey ] structure
-   *   let t : t typ   = typedef (structure "`Curve25519PrivateKey") "_olm_curve25519_private_key"
-   *   let private_key = field t "private_key" (array curve25519_key_length uint8_t)
-   *   let ()          = seal t
-   * end
-   *
-   * module Curve25519KeyPair = struct
-   *   type t = [ `Curve25519KeyPair ] structure
-   *   let t : t typ   = typedef (structure "`Curve25519KeyPair") "_olm_curve25519_key_pair"
-   *   let public_key  = field t "public_key" Curve25519PublicKey.t
-   *   let private_key = field t "private_key" Curve25519PrivateKey.t
-   *   let ()          = seal t
-   * end
-   *
-   * module ED25519PublicKey = struct
-   *   type t = [ `ED25519PublicKey ] structure
-   *   let t : t typ  = typedef (structure "`ED25519PublicKey") "_olm_ed25519_public_key"
-   *   let public_key = field t "public_key" (array ed25519_public_key_length uint8_t)
-   *   let ()         = seal t
-   * end
-   *
-   * module ED25519PrivateKey = struct
-   *   type t = [ `ED25519PrivateKey ] structure
-   *   let t : t typ   = typedef (structure "`ED25519PrivateKey") "_olm_ed25519_private_key"
-   *   let private_key = field t "private_key" (array ed25519_private_key_length uint8_t)
-   *   let ()          = seal t
-   * end
-   *
-   * module ED25519KeyPair = struct
-   *   type t = [ `ED25519KeyPair ] structure
-   *   let t : t typ   = typedef (structure "`ED25519KeyPair") "_olm_ed25519_key_pair"
-   *   let public_key  = field t "public_key" ED25519PublicKey.t
-   *   let private_key = field t "private_key" ED25519PrivateKey.t
-   *   let ()          = seal t
-   * end
-   *
-   * module Megolm = struct
-   *   type t = [ `Megolm ] structure
-   *   let t : t typ = typedef (structure "`Megolm") "Megolm"
-   *   let data      = field t "data" (array megolm_ratchet_parts
-   *                                     (array megolm_ratchet_part_length uint8_t))
-   *   let counter   = field t "counter" uint32_t
-   *   let ()        = seal t
-   * end
-   *
-   * module InboundGroupSession = struct
-   *   type t = [ `InboundGroupSession ] structure
-   *   let t : t typ            = typedef (structure "`InboundGroupSession") "OlmInboundGroupSession"
-   *   let initial_ratchet      = field t "initial_ratchet" Megolm.t
-   *   let latest_ratchet       = field t "latest_ratchet" Megolm.t
-   *   let signing_key          = field t "signing_key" ED25519PublicKey.t
-   *   let signing_key_verified = field t "signing_key_verified" int
-   *   let last_error           = field t "last_error" ErrorCode.t
-   *   let ()                   = seal t
-   * end
-   *
-   * module OutboundGroupSession = struct
-   *   type t = [ `OutboundGroupSession ] structure
-   *   let t : t typ   = typedef (structure "`OutboundGroupSession") "OlmOutboundGroupSession"
-   *   let ratchet     = field t "ratchet" Megolm.t
-   *   let signing_key = field t "signing_key" ED25519KeyPair.t
-   *   let last_error  = field t "last_error" ErrorCode.t
-   *   let ()          = seal t
-   * end
-   *
-   * module Account = struct
-   *   type t = [ `Account ] structure
-   *   let t : t typ = typedef (structure "`Account") "OlmAccount"
-   * end
-   *
-   * module Session = struct
-   *   type t = [ `Session ] structure
-   *   let t : t typ = typedef (structure "`Session") "OlmSession"
-   * end
-   *
-   * module Utility = struct
-   *   type t = [ `Utility ] structure
-   *   let t : t typ = typedef (structure "`Utility") "OlmUtility"
-   * end
-   *
-   * module PkEncryption = struct
-   *   type t = [ `PkEncryption ] structure
-   *   let t : t typ     = typedef (structure "`PkEncryption") "OlmPkEncryption"
-   *   let last_error    = field t "last_error" ErrorCode.t
-   *   let recipient_key = field t "recipient_key" Curve25519PublicKey.t
-   *   let ()            = seal t
-   * end
-   *
-   * module PkDecryption = struct
-   *   type t = [ `PkDecryption ] structure
-   *   let t : t typ  = typedef (structure "`PkDecryption") "OlmPkDecryption"
-   *   let last_error = field t "last_error" ErrorCode.t
-   *   let key_pair   = field t "key_pair" Curve25519KeyPair.t
-   *   let ()         = seal t
-   * end
-   *
-   * module PkSigning = struct
-   *   type t = [ `PkSigning ] structure
-   *   let t : t typ  = typedef (structure "`PkSigning") "OlmPkSigning"
-   *   let last_error = field t "last_error" ErrorCode.t
-   *   let key_pair   = field t "key_pair" ED25519KeyPair.t
-   *   let ()         = seal t
-   * end
-   *
-   * module SAS = struct
-   *   type t = [ `SAS ] structure
-   *   let t : t typ      = typedef (structure "`SAS") "OlmSAS"
-   *   let last_error     = field t "last_error" ErrorCode.t
-   *   let curve25519_key = field t "curve25519_key" Curve25519KeyPair.t
-   *   let secret         = field t "secret" (array curve25519_shared_secret_length uint8_t)
-   *   let their_key_set  = field t "their_key_set" int
-   *   let ()             = seal t
-   * end *)
+  module Aes256Key = struct
+    type t = [ `Aes256Key ] structure
+    let t : t typ = structure "_olm_aes256_key"
+    let key       = field t "key" (array aes256_key_length uint8_t)
+    let ()        = seal t
+  end
+
+  module Aes256Iv = struct
+    type t = [ `Aes256Iv ] structure
+    let t : t typ = structure "_olm_aes256_iv"
+    let iv        = field t "iv" (array aes256_iv_length uint8_t)
+    let ()        = seal t
+  end
+
+  module Curve25519PublicKey = struct
+    type t = [ `Curve25519PublicKey ] structure
+    let t : t typ  = structure "_olm_curve25519_public_key"
+    let public_key = field t "public_key" (array curve25519_key_length uint8_t)
+    let ()         = seal t
+  end
+
+  module Curve25519PrivateKey = struct
+    type t = [ `Curve25519PrivateKey ] structure
+    let t : t typ   = structure "_olm_curve25519_private_key"
+    let private_key = field t "private_key" (array curve25519_key_length uint8_t)
+    let ()          = seal t
+  end
+
+  module Curve25519KeyPair = struct
+    type t = [ `Curve25519KeyPair ] structure
+    let t : t typ   = structure "_olm_curve25519_key_pair"
+    let public_key  = field t "public_key" Curve25519PublicKey.t
+    let private_key = field t "private_key" Curve25519PrivateKey.t
+    let ()          = seal t
+  end
+
+  module ED25519PublicKey = struct
+    type t = [ `ED25519PublicKey ] structure
+    let t : t typ  = structure "_olm_ed25519_public_key"
+    let public_key = field t "public_key" (array ed25519_public_key_length uint8_t)
+    let ()         = seal t
+  end
+
+  module ED25519PrivateKey = struct
+    type t = [ `ED25519PrivateKey ] structure
+    let t : t typ   = structure "_olm_ed25519_private_key"
+    let private_key = field t "private_key" (array ed25519_private_key_length uint8_t)
+    let ()          = seal t
+  end
+
+  module ED25519KeyPair = struct
+    type t = [ `ED25519KeyPair ] structure
+    let t : t typ   = structure "_olm_ed25519_key_pair"
+    let public_key  = field t "public_key" ED25519PublicKey.t
+    let private_key = field t "private_key" ED25519PrivateKey.t
+    let ()          = seal t
+  end
+
+  module Megolm = struct
+    type t = [ `Megolm ] structure
+    let t : t typ = structure "Megolm"
+    let data      = field t "data" (array megolm_ratchet_parts
+                                      (array megolm_ratchet_part_length uint8_t))
+    let counter   = field t "counter" uint32_t
+    let ()        = seal t
+  end
+
+  module InboundGroupSession = struct
+    type t = [ `InboundGroupSession ] structure
+    let t : t typ            = structure "OlmInboundGroupSession"
+    let initial_ratchet      = field t "initial_ratchet" Megolm.t
+    let latest_ratchet       = field t "latest_ratchet" Megolm.t
+    let signing_key          = field t "signing_key" ED25519PublicKey.t
+    let signing_key_verified = field t "signing_key_verified" int
+    let last_error           = field t "last_error" ErrorCode.t
+    let ()                   = seal t
+  end
+
+  module OutboundGroupSession = struct
+    type t = [ `OutboundGroupSession ] structure
+    let t : t typ   = structure "OlmOutboundGroupSession"
+    let ratchet     = field t "ratchet" Megolm.t
+    let signing_key = field t "signing_key" ED25519KeyPair.t
+    let last_error  = field t "last_error" ErrorCode.t
+    let ()          = seal t
+  end
+
+  module Account = struct
+    type t = [ `Account ] structure
+    let t : t typ = structure "OlmAccount"
+  end
+
+  module Session = struct
+    type t = [ `Session ] structure
+    let t : t typ = structure "OlmSession"
+  end
+
+  module Utility = struct
+    type t = [ `Utility ] structure
+    let t : t typ = structure "OlmUtility"
+  end
+
+  module PkEncryption = struct
+    type t = [ `PkEncryption ] structure
+    let t : t typ     = structure "OlmPkEncryption"
+    let last_error    = field t "last_error" ErrorCode.t
+    let recipient_key = field t "recipient_key" Curve25519PublicKey.t
+    let ()            = seal t
+  end
+
+  module PkDecryption = struct
+    type t = [ `PkDecryption ] structure
+    let t : t typ  = structure "OlmPkDecryption"
+    let last_error = field t "last_error" ErrorCode.t
+    let key_pair   = field t "key_pair" Curve25519KeyPair.t
+    let ()         = seal t
+  end
+
+  module PkSigning = struct
+    type t = [ `PkSigning ] structure
+    let t : t typ  = structure "OlmPkSigning"
+    let last_error = field t "last_error" ErrorCode.t
+    let key_pair   = field t "key_pair" ED25519KeyPair.t
+    let ()         = seal t
+  end
+
+  module SAS = struct
+    type t = [ `SAS ] structure
+    let t : t typ      = structure "OlmSAS"
+    let last_error     = field t "last_error" ErrorCode.t
+    let curve25519_key = field t "curve25519_key" Curve25519KeyPair.t
+    let secret         = field t "secret" (array curve25519_shared_secret_length uint8_t)
+    let their_key_set  = field t "their_key_set" int
+    let ()             = seal t
+  end
 end
