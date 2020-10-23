@@ -47,9 +47,7 @@
  (targets generate_types_step_2.exe)
  (deps
   (:c generate_types_step_2.c)
-  (source_tree vendor/libolm/include)
-  (source_tree vendor/libolm/src)
-  (source_tree vendor/helpers)
+  (source_tree vendor)
   (file libolm.a))
  (action (bash "\
   %{cc} %{c} \
