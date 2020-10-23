@@ -1,8 +1,3 @@
-(env
- (_
-  (env-vars
-   (LD_LIBRARY_PATH "/home/geoff/GitRepos/ocaml-olm/libolm/build/libolm.so"))))
-
 (library
  (name olm)
- (libraries ctypes ctypes.foreign))
+ (libraries core olm.c))
