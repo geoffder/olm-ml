@@ -1,16 +1,23 @@
-; (library
-;   (name olm_c)
-;   (public_name olm.c)
-;   (wrapped false)
-;   ; (modules Olm_c_generated_functions)
-;   ; (libraries ctypes olm_c_function_descriptions)
-;   ; (foreign_stubs
-;   ;  (language c)
-;   ;  (names c_generated_functions)
-;   ;  (include_dirs vendor/libolm/include))
-;   (foreign_archives vendor/libolm/build/olm))
-;
-;
+(library
+ (name olm_c)
+ (public_name olm.c)
+ (wrapped false)
+ (modules Olm_c_generated_functions)
+ (libraries ctypes olm_c_function_descriptions)
+ (foreign_stubs
+  (language c)
+  (names c_generated_functions)
+  (include_dirs
+    vendor/libolm/include
+    vendor/helpers
+    vendor/libolm/lib
+    vendor/libolm/src))
+  ; NOTE: made a copy of libolm.so and renamed to dllolm.so for this.
+  ; Add something to do that when I add in a rule to run the libolm make.
+ (foreign_archives vendor/libolm/build/olm)
+ (c_library_flags (-lstdc++)))
+
+
 ; (install
 ;  (section lib)
 ;  (package olm)
@@ -34,7 +41,7 @@
 (executable
  (name generate_types_start)
  (modules Generate_types_start)
- (foreign_archives olm)
+ (foreign_archives vendor/libolm/build/olm)
  (libraries ctypes.stubs olm_c_type_descriptions))
 
 (rule
@@ -47,6 +54,7 @@
   (:c generate_types_step_2.c)
   (source_tree vendor/libolm/include)
   (source_tree vendor/libolm/src)
+  (source_tree vendor/helpers)
   (file vendor/libolm/build/libolm.a))
  (action (bash "\
   %{cc} %{c} \
@@ -56,3 +64,34 @@
   -I vendor/libolm/src \
   -I vendor/helpers \
   -o %{targets}")))
+
+(rule
+ (with-stdout-to olm_c_generated_types.ml
+  (run ./generate_types_step_2.exe)))
+
+; Function bindings.
+(library
+ (name olm_c_function_descriptions)
+ (public_name olm.c_function_descriptions)
+ (flags (:standard -w -9-16-27))
+ (wrapped false)
+ (modules Olm_c_generated_types Olm_c_function_descriptions Olm_c_types)
+ (libraries ctypes olm_c_type_descriptions))
+
+(executable
+ (name generate_c_functions)
+ (modules Generate_c_functions)
+ (libraries ctypes.stubs olm_c_function_descriptions))
+
+(executable
+ (name generate_ml_functions)
+ (modules Generate_ml_functions)
+ (libraries ctypes.stubs olm_c_function_descriptions))
+
+(rule
+ (with-stdout-to c_generated_functions.c
+  (run ./generate_c_functions.exe olm_stub)))
+
+(rule
+ (with-stdout-to olm_c_generated_functions.ml
+  (run ./generate_ml_functions.exe olm_stub)))
