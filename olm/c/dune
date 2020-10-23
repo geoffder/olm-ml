@@ -12,24 +12,19 @@
     vendor/helpers
     vendor/libolm/lib
     vendor/libolm/src))
-  ; NOTE: made a copy of libolm.so and renamed to dllolm.so for this.
-  ; Add something to do that when I add in a rule to run the libolm make.
- (foreign_archives vendor/libolm/build/olm)
+ (foreign_archives olm)
  (c_library_flags (-lstdc++)))
 
-
-; (install
-;  (section lib)
-;  (package olm)
-;  (files
-;   (vendor/libolm/include/olm/crypto.h as olm/crypto.h)
-;   (vendor/libolm/include/olm/error.h as olm/error.h)
-;   (vendor/libolm/include/olm/inbound_group_session.h as olm/inbound_group_session.h)
-;   (vendor/libolm/include/olm/megolm.h as olm/megolm.h)
-;   (vendor/libolm/include/olm/olm.h as olm/olm.h)
-;   (vendor/libolm/include/olm/outbound_group_session.h as olm/outbound_group_session.h)
-;   (vendor/libolm/include/olm/pk.h as olm/pk.h)
-;   (vendor/libolm/include/olm/sas.h as olm/sas.h)))
+; Build libolm vendor
+(rule
+ (targets libolm.a dllolm%{ext_dll})
+ (deps (source_tree vendor/libolm))
+ (action (progn
+          (ignore-outputs
+           (chdir vendor/libolm
+            (bash "make clean && make && make static")))
+          (bash "cp vendor/libolm/build/libolm.a .")
+          (bash "cp vendor/libolm/build/libolm.so dllolm.so"))))
 
 ; Type bindings (Olm_c_generated_types).
 (library
@@ -41,7 +36,7 @@
 (executable
  (name generate_types_start)
  (modules Generate_types_start)
- (foreign_archives vendor/libolm/build/olm)
+ (foreign_archives olm)
  (libraries ctypes.stubs olm_c_type_descriptions))
 
 (rule
@@ -55,7 +50,7 @@
   (source_tree vendor/libolm/include)
   (source_tree vendor/libolm/src)
   (source_tree vendor/helpers)
-  (file vendor/libolm/build/libolm.a))
+  (file libolm.a))
  (action (bash "\
   %{cc} %{c} \
   -I '%{lib:ctypes:.}' \
