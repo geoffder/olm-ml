@@ -1,5 +1,5 @@
 (library
  (name olm_test)
  (inline_tests)
- (libraries core olm.c)
+ (libraries core olm.c olm)
  (preprocess (pps ppx_inline_test)))

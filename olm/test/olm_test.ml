@@ -1,6 +1,6 @@
 open! Core
-open! Olm_c_types
-open! Olm_c_generated_functions
+open Olm
 
-let%test "a" = olm_stub_111_olm_pk_signing_size ()
-               |> ignore; true
+let%test "a" = C.Functions.olm_pk_signing_size ()
+               |> Unsigned.Size_t.to_int
+               |> ( = ) 100
