@@ -461,6 +461,12 @@ module Descriptions (F : Ctypes.FOREIGN) = struct
        @-> size_t            (* message_length *)
        @-> returning size_t) (* 0 if no match, olm_errror on failure *)
 
+  let remove_one_time_keys =
+    foreign "olm_remove_one_time_keys"
+      (ptr Account.t         (* account *)
+       @-> ptr Session.t     (* session *)
+       @-> returning size_t) (* olm_error on failure *)
+
   let encrypt_message_type =
     foreign "olm_encrypt_message_type"
       (ptr Session.t @-> returning size_t)
