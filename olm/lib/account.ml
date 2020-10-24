@@ -1,16 +1,16 @@
 open! Core
+open Helpers
 
-let size = C.Functions.account_size () |> Unsigned.Size_t.to_int
+type t = C.Types.Account.t Ctypes_static.ptr
 
-let clear = C.Functions.clear_account
+let size = C.Funcs.account_size () |> size_to_int
 
-type t = C.Types.Account.t Ctypes.ptr
+let clear = C.Funcs.clear_account
 
 let check_error t ret =
   Helpers.size_to_result ret
-  |> Result.map_error ~f:(fun _ -> C.Functions.account_last_error t
-                                   |> Helpers.string_of_null_term_ptr)
-  |> Result.map ~f:(fun _ -> t)
+  |> Result.map_error ~f:(fun _ -> C.Funcs.account_last_error t
+                                   |> string_of_nullterm_char_ptr)
 
 let random_bytes len =
   let open Ctypes in
@@ -20,8 +20,76 @@ let random_bytes len =
   |> to_voidp
 
 let create () =
-  let account       = Helpers.allocate_bytes_void size |> C.Functions.account in
-  let random_length = C.Functions.create_account_random_length account in
-  let random        = random_bytes (Unsigned.Size_t.to_int random_length) in
-  C.Functions.create_account account random random_length
-  |> check_error account
+  let t          = allocate_bytes_void size |> C.Funcs.account in
+  let random_len = C.Funcs.create_account_random_length t in
+  let random_buf = random_bytes (Unsigned.Size_t.to_int random_len) in
+  C.Funcs.create_account t random_buf random_len
+  |> check_error t >>| fun _ ->
+  t
+
+(* NOTE: Bother zero-ing key array, or leave it to the GC? *)
+let pickle ?(pass="") t =
+  let key_buf    = string_to_voidp pass in
+  let key_len    = String.length pass + 1 |> size_of_int in
+  let pickle_len = C.Funcs.pickle_account_length t in
+  let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
+  C.Funcs.pickle_account t key_buf key_len pickle_buf pickle_len
+  |> check_error t >>| fun _ ->
+  string_of_voidp ~length:(size_to_int pickle_len) pickle_buf
+
+let from_pickle ?(pass="") pickle =
+  let key_buf    = string_to_voidp pass in
+  let key_len    = String.length pass + 1 |> size_of_int in
+  let pickle_len = String.length pickle + 1 |> size_of_int in
+  let pickle_buf = string_to_voidp pass in
+  create () >>= fun t ->
+  C.Funcs.unpickle_account t key_buf key_len pickle_buf pickle_len
+  |> check_error t >>| fun _ ->
+  t
+
+let identity_keys t =
+  let out_len = C.Funcs.account_identity_keys_length t in
+  let out_buf = allocate_bytes_void (size_to_int out_len) in
+  C.Funcs.account_identity_keys t out_buf out_len
+  |> check_error t >>= fun _ ->
+  string_of_voidp ~length:(size_to_int out_len) out_buf
+  |> Yojson.Safe.from_string
+  |> YoJs.StringMap.of_yojson YoJs.string_of_yojson
+
+(* NOTE: Bother zero-ing msg array, or leave it to the GC? *)
+let sign t msg =
+  let msg_buf = string_to_voidp msg in
+  let msg_len = String.length msg + 1 |> size_of_int in
+  let out_len = C.Funcs.account_signature_length t in
+  let out_buf = allocate_bytes_void (size_to_int out_len) in
+  C.Funcs.account_sign t msg_buf msg_len out_buf out_len
+  |> check_error t >>| fun _ ->
+  string_of_voidp ~length:(size_to_int out_len) out_buf
+
+let max_one_time_keys t =
+  C.Funcs.account_max_number_of_one_time_keys t
+  |> check_error t
+
+let mark_keys_as_published t =
+  C.Funcs.account_mark_keys_as_published t
+  |> check_error t
+
+let generate_one_time_keys t count =
+  let n = size_of_int count in
+  let random_len = C.Funcs.account_generate_one_time_keys_random_length t n in
+  let random_buf = random_bytes (Unsigned.Size_t.to_int random_len) in
+  C.Funcs.account_generate_one_time_keys t n random_buf random_len
+  |> check_error t
+
+let one_time_keys t =
+  let out_len = C.Funcs.account_one_time_keys_length t in
+  let out_buf = allocate_bytes_void (size_to_int out_len) in
+  C.Funcs.account_one_time_keys t out_buf out_len
+  |> check_error t >>= fun _ ->
+  string_of_voidp ~length:(size_to_int out_len) out_buf
+  |> Yojson.Safe.from_string
+  |> YoJs.StringMap.of_yojson YoJs.string_of_yojson
+
+let remove_one_time_keys t session =
+  C.Funcs.remove_one_time_keys t session
+  |> check_error t
