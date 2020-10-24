@@ -1,3 +1,3 @@
 (library
  (name olm)
- (libraries core olm.c))
+ (libraries core olm.c cryptokit))
