@@ -1,0 +1,3 @@
+[submodule "olm/c/vendor/libolm"]
+	path = olm/c/vendor/libolm
+	url = https://gitlab.matrix.org/matrix-org/olm
