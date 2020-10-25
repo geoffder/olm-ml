@@ -20,14 +20,14 @@ let create () =
   |> check_error t >>| fun _ ->
   t
 
-(* NOTE: Bother zero-ing key array, or leave it to the GC? *)
 let pickle ?(pass="") t =
   let key_buf    = string_to_ptr Ctypes.void pass in
   let key_len    = String.length pass + 1 |> size_of_int in
   let pickle_len = C.Funcs.pickle_account_length t in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
-  C.Funcs.pickle_account t key_buf key_len pickle_buf pickle_len
-  |> check_error t >>| fun _ ->
+  let ret = C.Funcs.pickle_account t key_buf key_len pickle_buf pickle_len in
+  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  check_error t ret >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
 let from_pickle ?(pass="") pickle =
@@ -36,8 +36,9 @@ let from_pickle ?(pass="") pickle =
   let pickle_len = String.length pickle + 1 |> size_of_int in
   non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
   create () >>= fun t ->
-  C.Funcs.unpickle_account t key_buf key_len pickle_buf pickle_len
-  |> check_error t >>| fun _ ->
+  let ret = C.Funcs.unpickle_account t key_buf key_len pickle_buf pickle_len in
+  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  check_error t ret >>| fun _ ->
   t
 
 let identity_keys t =
@@ -49,14 +50,14 @@ let identity_keys t =
   |> Yojson.Safe.from_string
   |> YoJs.StringMap.of_yojson YoJs.string_of_yojson
 
-(* NOTE: Bother zero-ing msg array, or leave it to the GC? *)
 let sign t msg =
   let msg_buf = string_to_ptr Ctypes.void msg in
   let msg_len = String.length msg + 1 |> size_of_int in
   let out_len = C.Funcs.account_signature_length t in
   let out_buf = allocate_bytes_void (size_to_int out_len) in
-  C.Funcs.account_sign t msg_buf msg_len out_buf out_len
-  |> check_error t >>| fun _ ->
+  let ret = C.Funcs.account_sign t msg_buf msg_len out_buf out_len in
+  let ()  = zero_mem Ctypes.void ~length:(size_to_int msg_len) msg_buf in
+  check_error t ret >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int out_len) out_buf
 
 let max_one_time_keys t =
