@@ -99,6 +99,14 @@ module Descriptions (F : Ctypes.FOREIGN) = struct
     foreign "olm_export_inbound_group_session_length"
       (ptr InboundGroupSession.t @-> returning size_t)
 
+  let export_inbound_group_session =
+    foreign "olm_export_inbound_group_session"
+      (ptr InboundGroupSession.t (* session *)
+       @-> ptr uint8_t           (* key *)
+       @-> size_t                (* key_length *)
+       @-> uint32_t              (* message_index *)
+       @-> returning size_t)     (* length of ratchet key or olm_error *)
+
   (* outbound_group_session.h *)
 
   let outbound_group_session_size =
