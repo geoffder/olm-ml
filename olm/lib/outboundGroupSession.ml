@@ -61,7 +61,7 @@ let id t =
   string_of_ptr Ctypes.uint8_t ~length:(size_to_int id_len) id_buf
 
 let message_index t =
-  C.Funcs.outbound_group_session_message_index t
+  C.Funcs.outbound_group_session_message_index t |> Unsigned.UInt32.to_int
 
 let session_key t =
   let key_len = C.Funcs.outbound_group_session_key_length t in
