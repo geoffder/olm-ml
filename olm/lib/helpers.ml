@@ -30,9 +30,23 @@ let string_of_nullterm_char_ptr char_ptr =
   in
   loop [] char_ptr
 
-let string_of_voidp ~length voidp =
-  let open Ctypes in
-  coerce (ptr void) (ptr char) voidp
-  |> string_from_ptr ~length
+let string_of_ptr ctyp ~length p =
+  Ctypes.(coerce (ptr ctyp) (ptr char) p |> string_from_ptr ~length)
 
-let string_to_voidp s = Ctypes.(CArray.of_string s |> CArray.start |> to_voidp)
+let string_to_ptr ctyp s =
+  Ctypes.(CArray.of_string s |> CArray.start |> coerce (ptr char) (ptr ctyp))
+
+let random_chars len =
+  let open Ctypes in
+  Cryptokit.Random.(string secure_rng) len
+  |> CArray.of_string
+  |> CArray.start
+
+let random_void len = random_chars len |> Ctypes.to_voidp
+
+let random_uint8 len = random_chars len |> Ctypes.(coerce (ptr char) (ptr uint8_t))
+
+let non_empty_string ?(label="String") str =
+  if String.length str > 0
+  then Result.return str
+  else Result.fail (label ^ " can't be empty.")
