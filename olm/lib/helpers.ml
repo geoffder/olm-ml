@@ -1,4 +1,4 @@
-open! Core
+open Core
 
 module YoJs = Yojson_helpers
 

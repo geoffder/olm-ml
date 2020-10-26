@@ -1,4 +1,4 @@
-open! Core
+open Core
 open Helpers
 
 module Message : sig
@@ -81,10 +81,10 @@ let pickle ?(pass="") t =
   string_of_ptr_clr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
 let from_pickle ?(pass="") pickle =
+  non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
+  let pickle_len = String.length pickle + 1 |> size_of_int in
   let key_buf    = string_to_ptr Ctypes.void pass in
   let key_len    = String.length pass + 1 |> size_of_int in
-  let pickle_len = String.length pickle + 1 |> size_of_int in
-  non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
   let t = allocate_bytes_void size |> C.Funcs.session in
   let ret = C.Funcs.unpickle_session t key_buf key_len pickle_buf pickle_len in
   let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
