@@ -1,5 +1,6 @@
 open Core
 open Helpers
+open Helpers.ResultInfix
 
 type t = { buf : unit Ctypes.ptr
          ; acc : C.Types.Account.t Ctypes_static.ptr

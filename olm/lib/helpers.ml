@@ -2,8 +2,10 @@ open Core
 
 module YoJs = Yojson_helpers
 
-let ( >>| ) r f = Result.map ~f r
-let ( >>= ) r f = Result.bind ~f r
+module ResultInfix = struct
+  let ( >>| ) r f = Result.map ~f r
+  let ( >>= ) r f = Result.bind ~f r
+end
 
 let allocate_type_void t : unit Ctypes.ptr =
   Ctypes.(allocate_n t ~count:1 |> to_voidp)

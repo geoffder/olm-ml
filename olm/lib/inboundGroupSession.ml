@@ -1,5 +1,6 @@
 open Core
 open Helpers
+open Helpers.ResultInfix
 
 type t = { buf : unit Ctypes.ptr
          ; igs : C.Types.InboundGroupSession.t Ctypes_static.ptr

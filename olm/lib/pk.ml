@@ -1,5 +1,6 @@
 open Core
 open Helpers
+open Helpers.ResultInfix
 
 let public_key_size  = C.Funcs.pk_key_length () |> size_to_int
 let private_key_size = C.Funcs.pk_private_key_length () |> size_to_int

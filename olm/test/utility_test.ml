@@ -1,6 +1,6 @@
 open! Core
 open! Olm
-open! Olm.Helpers
+open! Helpers.ResultInfix
 
 let message = "Hello."
 let utility = Utility.create ()

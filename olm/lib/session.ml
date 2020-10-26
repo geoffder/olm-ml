@@ -1,5 +1,6 @@
 open Core
 open Helpers
+open Helpers.ResultInfix
 
 module Message : sig
   type t = private PreKey of string | Message of string

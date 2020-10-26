@@ -1,5 +1,6 @@
 open! Core
 open Helpers
+open Helpers.ResultInfix
 
 type t = { buf  : unit Ctypes.ptr
          ; util : C.Types.Utility.t Ctypes_static.ptr
