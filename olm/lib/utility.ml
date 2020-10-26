@@ -12,8 +12,10 @@ let clear = C.Funcs.clear_utility
 
 let check_error t ret =
   size_to_result ret
-  |> Result.map_error
-    ~f:(fun _ -> C.Funcs.utility_last_error t.util |> string_of_nullterm_char_ptr)
+  |> Result.map_error ~f:begin fun _ ->
+    C.Funcs.utility_last_error t.util
+    |> string_of_nullterm_char_ptr
+  end
 
 let create () =
   let buf = allocate_bytes_void size in

@@ -12,8 +12,10 @@ let clear = C.Funcs.clear_account
 
 let check_error t ret =
   size_to_result ret
-  |> Result.map_error
-    ~f:(fun _ -> C.Funcs.account_last_error t.acc |> string_of_nullterm_char_ptr)
+  |> Result.map_error ~f:begin fun _ ->
+    C.Funcs.account_last_error t.acc
+    |> string_of_nullterm_char_ptr
+  end
 
 let alloc () =
   let buf = allocate_bytes_void size in
