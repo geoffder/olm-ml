@@ -44,13 +44,13 @@ let create_inbound ?identity_key account = function
   | Message.Message _ -> Result.fail "PreKey message is required."
   | PreKey ciphertext ->
     let cipher_buf = string_to_ptr Ctypes.void ciphertext in
-    let cipher_len = String.length ciphertext + 1 |> size_of_int in
+    let cipher_len = String.length ciphertext |> size_of_int in
     let t          = allocate_bytes_void size |> C.Funcs.session in
     begin
       match identity_key with
       | Some key when String.length key > 0 ->
         let key_buf = string_to_ptr Ctypes.void key in
-        let key_len = String.length key + 1 |> size_of_int in
+        let key_len = String.length key |> size_of_int in
         C.Funcs.create_inbound_session_from t account key_buf key_len cipher_buf cipher_len
       | _ -> C.Funcs.create_inbound_session t account cipher_buf cipher_len
     end |> check_error t >>| fun _ ->
@@ -62,8 +62,8 @@ let create_outbound account identity_key one_time_key =
   non_empty_string ~label:"One time key" one_time_key >>|
   string_to_ptr Ctypes.void >>= fun one_buf ->
   let t          = allocate_bytes_void size |> C.Funcs.session in
-  let id_len     = String.length identity_key + 1 |> size_of_int in
-  let one_len    = String.length one_time_key + 1 |> size_of_int in
+  let id_len     = String.length identity_key |> size_of_int in
+  let one_len    = String.length one_time_key |> size_of_int in
   let random_len = C.Funcs.create_outbound_session_random_length t in
   let random_buf = random_void (size_to_int random_len) in
   C.Funcs.create_outbound_session t account id_buf id_len one_buf one_len random_buf random_len
@@ -72,7 +72,7 @@ let create_outbound account identity_key one_time_key =
 
 let pickle ?(pass="") t =
   let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass + 1 |> size_of_int in
+  let key_len    = String.length pass |> size_of_int in
   let pickle_len = C.Funcs.pickle_session_length t in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_session t key_buf key_len pickle_buf pickle_len in
@@ -82,9 +82,9 @@ let pickle ?(pass="") t =
 
 let from_pickle ?(pass="") pickle =
   non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
-  let pickle_len = String.length pickle + 1 |> size_of_int in
+  let pickle_len = String.length pickle |> size_of_int in
   let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass + 1 |> size_of_int in
+  let key_len    = String.length pass |> size_of_int in
   let t = allocate_bytes_void size |> C.Funcs.session in
   let ret = C.Funcs.unpickle_session t key_buf key_len pickle_buf pickle_len in
   let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
@@ -93,7 +93,7 @@ let from_pickle ?(pass="") pickle =
 
 let encrypt t plaintext =
   let txt_buf    = string_to_ptr Ctypes.void plaintext in
-  let txt_len    = String.length plaintext + 1 |> size_of_int in
+  let txt_len    = String.length plaintext |> size_of_int in
   let random_len = C.Funcs.encrypt_random_length t in
   let random_buf = random_void (size_to_int random_len) in
   C.Funcs.encrypt_message_type t |> check_error t >>= fun msg_type ->
@@ -109,7 +109,7 @@ let decrypt t msg =
   let ciphertext    = Message.ciphertext msg in
   let msg_type      = Message.to_size msg in
   let cipher_buf () = string_to_ptr Ctypes.void ciphertext in (* max len fun destroys *)
-  let cipher_len    = String.length ciphertext + 1 |> size_of_int in
+  let cipher_len    = String.length ciphertext |> size_of_int in
   C.Funcs.decrypt_max_plaintext_length t msg_type (cipher_buf ()) cipher_len
   |> check_error t >>= fun max_txt_len ->
   let txt_buf = allocate_bytes_void max_txt_len in
@@ -128,12 +128,12 @@ let matches ?identity_key t = function
   | Message.Message _ -> Result.fail "Matches can only be called on pre-key messages."
   | PreKey ciphertext ->
     let cipher_buf () = string_to_ptr Ctypes.void ciphertext in
-    let cipher_len    = String.length ciphertext + 1 |> size_of_int in
+    let cipher_len    = String.length ciphertext |> size_of_int in
     begin
       match identity_key with
       | Some key when String.length key > 0 ->
         let key_buf = string_to_ptr Ctypes.void key in
-        let key_len = String.length key + 1 |> size_of_int in
+        let key_len = String.length key |> size_of_int in
         C.Funcs.matches_inbound_session_from t key_buf key_len (cipher_buf ()) cipher_len
       | _ -> C.Funcs.matches_inbound_session t (cipher_buf ()) cipher_len
     end |> check_error t >>| fun matched ->

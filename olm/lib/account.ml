@@ -22,7 +22,7 @@ let create () =
 
 let pickle ?(pass="") t =
   let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass + 1 |> size_of_int in
+  let key_len    = String.length pass |> size_of_int in
   let pickle_len = C.Funcs.pickle_account_length t in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_account t key_buf key_len pickle_buf pickle_len in
@@ -32,9 +32,9 @@ let pickle ?(pass="") t =
 
 let from_pickle ?(pass="") pickle =
   non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
-  let pickle_len = String.length pickle + 1 |> size_of_int in
+  let pickle_len = String.length pickle |> size_of_int in
   let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass + 1 |> size_of_int in
+  let key_len    = String.length pass |> size_of_int in
   create () >>= fun t ->
   let ret = C.Funcs.unpickle_account t key_buf key_len pickle_buf pickle_len in
   let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
@@ -52,7 +52,7 @@ let identity_keys t =
 
 let sign t msg =
   let msg_buf = string_to_ptr Ctypes.void msg in
-  let msg_len = String.length msg + 1 |> size_of_int in
+  let msg_len = String.length msg |> size_of_int in
   let out_len = C.Funcs.account_signature_length t in
   let out_buf = allocate_bytes_void (size_to_int out_len) in
   let ret = C.Funcs.account_sign t msg_buf msg_len out_buf out_len in
@@ -82,7 +82,7 @@ let one_time_keys t =
   |> check_error t >>= fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int out_len) out_buf
   |> Yojson.Safe.from_string
-  |> YoJs.StringMap.of_yojson YoJs.string_of_yojson
+  |> YoJs.StringMap.of_yojson YoJs.(StringMap.of_yojson string_of_yojson)
 
 let remove_one_time_keys t session =
   C.Funcs.remove_one_time_keys t session

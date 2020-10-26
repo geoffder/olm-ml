@@ -32,7 +32,7 @@ module Encryption = struct
   let create recipient_key =
     non_empty_string ~label:"Key" recipient_key >>|
     string_to_ptr Ctypes.void >>= fun key_buf ->
-    let key_len = String.length recipient_key + 1 |> size_of_int in
+    let key_len = String.length recipient_key |> size_of_int in
     let t       = allocate_bytes_void size |> C.Funcs.pk_encryption in
     let ret = C.Funcs.pk_encryption_set_recipient_key t key_buf key_len in
     let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
@@ -41,7 +41,7 @@ module Encryption = struct
 
   let encrypt t plaintext =
     let txt_buf    = string_to_ptr Ctypes.void plaintext in
-    let txt_len    = String.length plaintext + 1 |> size_of_int in
+    let txt_len    = String.length plaintext |> size_of_int in
     let random_len = C.Funcs.pk_encrypt_random_length t in
     let random_buf = random_void (size_to_int random_len) in
     let cipher_len = C.Funcs.pk_ciphertext_length t txt_len in
@@ -90,7 +90,7 @@ module Decryption = struct
 
   let pickle ?(pass="") t =
     let pass_buf   = string_to_ptr Ctypes.void pass in
-    let pass_len   = String.length pass + 1 |> size_of_int in
+    let pass_len   = String.length pass |> size_of_int in
     let pickle_len = C.Funcs.pickle_pk_decryption_length t in
     let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
     let ret = C.Funcs.pickle_pk_decryption t pass_buf pass_len pickle_buf pickle_len in
@@ -101,12 +101,12 @@ module Decryption = struct
   let from_pickle ?(pass="") pickle =
     non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
     let pass_buf = string_to_ptr Ctypes.void pass in
-    let pass_len = String.length pass + 1 |> size_of_int in
+    let pass_len = String.length pass |> size_of_int in
     let key_buf  = allocate_bytes_void public_key_size in
     let t        = allocate_bytes_void size |> C.Funcs.pk_decryption in
     let ret = C.Funcs.unpickle_pk_decryption t
         pass_buf   pass_len
-        pickle_buf (String.length pickle + 1 |> size_of_int)
+        pickle_buf (String.length pickle |> size_of_int)
         key_buf    (size_of_int public_key_size)
     in
     let () = zero_mem Ctypes.void ~length:(size_to_int pass_len) pass_buf in
@@ -117,12 +117,12 @@ module Decryption = struct
     let key_buf     = string_to_ptr Ctypes.void msg.ephemeral_key in
     let mac_buf     = string_to_ptr Ctypes.void msg.mac in
     let cipher_buf  = string_to_ptr Ctypes.void msg.ciphertext in
-    let cipher_len  = String.length msg.ciphertext + 1 |> size_of_int in
+    let cipher_len  = String.length msg.ciphertext |> size_of_int in
     let max_txt_len = C.Funcs.pk_max_plaintext_length t cipher_len in
     let txt_buf     = allocate_bytes_void (size_to_int max_txt_len) in
     C.Funcs.pk_decrypt t
-      key_buf    (String.length msg.ephemeral_key + 1 |> size_of_int)
-      mac_buf    (String.length msg.mac + 1 |> size_of_int)
+      key_buf    (String.length msg.ephemeral_key |> size_of_int)
+      mac_buf    (String.length msg.mac |> size_of_int)
       cipher_buf cipher_len
       txt_buf    max_txt_len
     |> check_error t >>| fun txt_len ->

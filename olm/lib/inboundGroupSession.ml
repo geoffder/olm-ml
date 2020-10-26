@@ -17,7 +17,7 @@ let check_error t ret =
 let create outbound_session_key =
   let t       = allocate_bytes_void size |> C.Funcs.inbound_group_session in
   let key_buf = string_to_ptr Ctypes.uint8_t outbound_session_key in
-  let key_len = String.length outbound_session_key + 1 |> size_of_int in
+  let key_len = String.length outbound_session_key |> size_of_int in
   let ret = C.Funcs.init_inbound_group_session t key_buf key_len in
   let ()  = zero_mem Ctypes.uint8_t ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
@@ -25,7 +25,7 @@ let create outbound_session_key =
 
 let pickle ?(pass="") t =
   let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass + 1 |> size_of_int in
+  let key_len    = String.length pass |> size_of_int in
   let pickle_len = C.Funcs.pickle_inbound_group_session_length t in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_inbound_group_session t key_buf key_len pickle_buf pickle_len in
@@ -35,9 +35,9 @@ let pickle ?(pass="") t =
 
 let from_pickle ?(pass="") pickle =
   non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
-  let pickle_len = String.length pickle + 1 |> size_of_int in
+  let pickle_len = String.length pickle |> size_of_int in
   let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass + 1 |> size_of_int in
+  let key_len    = String.length pass |> size_of_int in
   let t = allocate_bytes_void size |> C.Funcs.inbound_group_session in
   let ret = C.Funcs.unpickle_inbound_group_session t key_buf key_len pickle_buf pickle_len in
   let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
@@ -46,7 +46,7 @@ let from_pickle ?(pass="") pickle =
 
 let decrypt t ciphertext =
   let cipher_buf () = string_to_ptr Ctypes.uint8_t ciphertext in (* max len destroys *)
-  let cipher_len = String.length ciphertext + 1 |> size_of_int in
+  let cipher_len = String.length ciphertext |> size_of_int in
   C.Funcs.group_decrypt_max_plaintext_length t (cipher_buf ()) cipher_len
   |> check_error t >>= fun max_txt_len ->
   let txt_buf = Ctypes.(allocate_n uint8_t ~count:max_txt_len) in
@@ -77,7 +77,7 @@ let export_session t message_index =
 let import_session exported_key =
   let t       = allocate_bytes_void size |> C.Funcs.inbound_group_session in
   let key_buf = string_to_ptr Ctypes.uint8_t exported_key in
-  let key_len = String.length exported_key + 1 |> size_of_int in
+  let key_len = String.length exported_key |> size_of_int in
   let ret = C.Funcs.import_inbound_group_session t key_buf key_len in
   let ()  = zero_mem Ctypes.uint8_t ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->

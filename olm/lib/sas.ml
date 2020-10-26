@@ -14,7 +14,7 @@ let check_error t ret =
 
 let set_their_pubkey t key =
   let key_buf = string_to_ptr Ctypes.void key in
-  let key_len = String.length key + 1 |> size_of_int in
+  let key_len = String.length key |> size_of_int in
   C.Funcs.sas_set_their_key t key_buf key_len
   |> check_error t
 
@@ -40,7 +40,7 @@ let other_key_set t = C.Funcs.sas_is_their_key_set t > 0
 let generate_bytes t extra_info length =
   if length < 1 then
     let info_buf = string_to_ptr Ctypes.void extra_info in
-    let info_len = String.length extra_info + 1 |> size_of_int in
+    let info_len = String.length extra_info |> size_of_int in
     let out_buf  = allocate_bytes_void length in
     C.Funcs.sas_generate_bytes t info_buf info_len out_buf (size_of_int length)
     |> check_error t >>| fun _ ->
@@ -49,9 +49,9 @@ let generate_bytes t extra_info length =
 
 let calculate_mac t msg extra_info =
   let msg_buf  = string_to_ptr Ctypes.void msg in
-  let msg_len  = String.length msg + 1 |> size_of_int in
+  let msg_len  = String.length msg |> size_of_int in
   let info_buf = string_to_ptr Ctypes.void extra_info in
-  let info_len = String.length extra_info + 1 |> size_of_int in
+  let info_len = String.length extra_info |> size_of_int in
   let mac_len  = C.Funcs.sas_mac_length t in
   let mac_buf  = allocate_bytes_void (size_to_int mac_len) in
   C.Funcs.sas_calculate_mac t msg_buf msg_len info_buf info_len mac_buf mac_len
