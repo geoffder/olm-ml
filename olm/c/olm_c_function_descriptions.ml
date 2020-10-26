@@ -699,6 +699,15 @@ module Descriptions (F : Ctypes.FOREIGN) = struct
     foreign "olm_clear_pk_signing"
       (ptr PkSigning.t @-> returning size_t)
 
+  let pk_signing_key_from_seed =
+    foreign "olm_pk_signing_key_from_seed"
+      (ptr PkSigning.t       (* signing *)
+       @-> ptr void          (* pubkey *)
+       @-> size_t            (* pubkey_length*)
+       @-> ptr void          (* seed *)
+       @-> size_t            (* seed_length*)
+       @-> returning size_t) (* olm_error on failure *)
+
   let pk_signing_seed_length =
     foreign "olm_pk_signing_seed_length"
       (void @-> returning size_t)
