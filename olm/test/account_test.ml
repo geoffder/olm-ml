@@ -11,9 +11,9 @@ let%test "get identity keys" =
 
 let%test "get identity keys" =
   let res =
-    Account.generate_one_time_keys bob 3 >>= fun _ ->
+    Account.generate_one_time_keys bob 2 >>= fun _ ->
     Account.one_time_keys bob            >>| fun keys ->
     Map.find_exn keys "curve25519" |> Map.length
   in
   Result.ok_or_failwith res
-  |> ( = ) 3
+  |> ( = ) 2
