@@ -32,7 +32,7 @@ let pickle ?(pass="") t =
   let pickle_len = C.Funcs.pickle_account_length t.acc in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_account t.acc key_buf key_len pickle_buf pickle_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
@@ -43,7 +43,7 @@ let from_pickle ?(pass="") pickle =
   let key_len    = String.length pass |> size_of_int in
   let t          = alloc () in
   let ret = C.Funcs.unpickle_account t.acc key_buf key_len pickle_buf pickle_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   t
 
@@ -62,7 +62,7 @@ let sign t msg =
   let out_len = C.Funcs.account_signature_length t.acc in
   let out_buf = allocate_bytes_void (size_to_int out_len) in
   let ret = C.Funcs.account_sign t.acc msg_buf msg_len out_buf out_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int msg_len) msg_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int msg_len) msg_buf in
   check_error t ret >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int out_len) out_buf
 
