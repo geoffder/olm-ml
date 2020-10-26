@@ -30,16 +30,17 @@ let string_of_nullterm_char_ptr char_ptr =
   in
   loop [] char_ptr
 
-let zero_mem ctyp ~length p =
-  let int_ptr = Ctypes.(coerce (ptr ctyp) (ptr int) p) in
-  for i = 0 to length - 1 do Ctypes.((int_ptr +@ i) <-@ 0) done
+let zero_bytes ctyp ~length p =
+  let int_ptr = Ctypes.(coerce (ptr ctyp) (ptr uint8_t) p) in
+  let zero    = Unsigned.UInt8.of_int 0 in
+  for i = 0 to length - 1 do Ctypes.((int_ptr +@ i) <-@ zero) done
 
 let string_of_ptr ctyp ~length p =
   Ctypes.(coerce (ptr ctyp) (ptr char) p |> string_from_ptr ~length)
 
 let string_of_ptr_clr ctyp ~length p =
   let str = string_of_ptr ctyp ~length p in
-  let ()  = zero_mem ctyp ~length p in
+  let ()  = zero_bytes ctyp ~length p in
   str
 
 let string_to_ptr ctyp s =

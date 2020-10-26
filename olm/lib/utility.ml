@@ -26,7 +26,7 @@ let ed25519_verify t key message signature =
   let sig_buf = string_to_ptr Ctypes.void signature in
   let sig_len = String.length signature |> size_of_int in
   let ret = C.Funcs.ed25519_verify t.util key_buf key_len msg_buf msg_len sig_buf sig_len in
-  let () = zero_mem Ctypes.void ~length:(size_to_int msg_len) msg_buf in
+  let () = zero_bytes Ctypes.void ~length:(size_to_int msg_len) msg_buf in
   check_error t ret
 
 let sha256 t input =

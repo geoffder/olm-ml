@@ -25,7 +25,7 @@ let create outbound_session_key =
   let key_buf = string_to_ptr Ctypes.uint8_t outbound_session_key in
   let key_len = String.length outbound_session_key |> size_of_int in
   let ret = C.Funcs.init_inbound_group_session t.igs key_buf key_len in
-  let ()  = zero_mem Ctypes.uint8_t ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.uint8_t ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   t
 
@@ -35,7 +35,7 @@ let pickle ?(pass="") t =
   let pickle_len = C.Funcs.pickle_inbound_group_session_length t.igs in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_inbound_group_session t.igs key_buf key_len pickle_buf pickle_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
@@ -49,7 +49,7 @@ let from_pickle ?(pass="") pickle =
       key_buf key_len
       pickle_buf pickle_len
   in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   t
 
@@ -91,7 +91,7 @@ let import_session exported_key =
   let key_buf = string_to_ptr Ctypes.uint8_t exported_key in
   let key_len = String.length exported_key |> size_of_int in
   let ret = C.Funcs.import_inbound_group_session t.igs key_buf key_len in
-  let ()  = zero_mem Ctypes.uint8_t ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.uint8_t ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   t
 

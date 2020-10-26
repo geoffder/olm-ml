@@ -86,7 +86,7 @@ let pickle ?(pass="") t =
   let pickle_len = C.Funcs.pickle_session_length t.ses in
   let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_session t.ses key_buf key_len pickle_buf pickle_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   string_of_ptr_clr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
@@ -97,7 +97,7 @@ let from_pickle ?(pass="") pickle =
   let key_len    = String.length pass |> size_of_int in
   let t          = alloc () in
   let ret = C.Funcs.unpickle_session t.ses key_buf key_len pickle_buf pickle_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   t
 
@@ -110,7 +110,7 @@ let encrypt t plaintext =
   let cipher_len = C.Funcs.encrypt_message_length t.ses txt_len in
   let cipher_buf = allocate_bytes_void (size_to_int cipher_len) in
   let ret = C.Funcs.encrypt t.ses txt_buf txt_len random_buf random_len cipher_buf cipher_len in
-  let ()  = zero_mem Ctypes.void ~length:(size_to_int txt_len) txt_buf in
+  let ()  = zero_bytes Ctypes.void ~length:(size_to_int txt_len) txt_buf in
   check_error t ret >>= fun _ ->
   let ciphertext = string_of_ptr Ctypes.void ~length:(size_to_int cipher_len) cipher_buf in
   Message.create ciphertext msg_type

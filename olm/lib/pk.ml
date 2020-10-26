@@ -41,7 +41,7 @@ module Encryption = struct
     let key_len = String.length recipient_key |> size_of_int in
     let t       = alloc () in
     let ret = C.Funcs.pk_encryption_set_recipient_key t.pk_enc key_buf key_len in
-    let ()  = zero_mem Ctypes.void ~length:(size_to_int key_len) key_buf in
+    let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
     check_error t ret >>| fun _ ->
     t
 
@@ -62,7 +62,7 @@ module Encryption = struct
         key_buf    (size_of_int public_key_size)
         random_buf random_len
     in
-    let () = zero_mem Ctypes.void ~length:(size_to_int txt_len) txt_buf in
+    let () = zero_bytes Ctypes.void ~length:(size_to_int txt_len) txt_buf in
     check_error t ret >>| fun _ ->
     Message.create
       (string_of_ptr Ctypes.void ~length:public_key_size key_buf)
@@ -107,7 +107,7 @@ module Decryption = struct
     let pickle_len = C.Funcs.pickle_pk_decryption_length t.pk_dec in
     let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
     let ret = C.Funcs.pickle_pk_decryption t.pk_dec pass_buf pass_len pickle_buf pickle_len in
-    let ()  = zero_mem Ctypes.void ~length:(size_to_int pass_len) pass_buf in
+    let ()  = zero_bytes Ctypes.void ~length:(size_to_int pass_len) pass_buf in
     check_error t ret >>| fun _ ->
     string_of_ptr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
@@ -122,7 +122,7 @@ module Decryption = struct
         pickle_buf (String.length pickle |> size_of_int)
         key_buf    (size_of_int public_key_size)
     in
-    let () = zero_mem Ctypes.void ~length:(size_to_int pass_len) pass_buf in
+    let () = zero_bytes Ctypes.void ~length:(size_to_int pass_len) pass_buf in
     check_error t ret >>| fun _ ->
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
 
@@ -177,7 +177,7 @@ module Signing = struct
     let key_buf  = allocate_bytes_void signing_public_key_size in
     let t        = alloc () in
     let ret = C.Funcs.pk_signing_key_from_seed t.pk_sgn key_buf key_len seed_buf seed_len in
-    let ()  = zero_mem Ctypes.void ~length:(size_to_int seed_len) seed_buf in
+    let ()  = zero_bytes Ctypes.void ~length:(size_to_int seed_len) seed_buf in
     check_error t ret >>| fun _ ->
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
 
