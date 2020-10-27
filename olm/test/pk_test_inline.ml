@@ -63,14 +63,28 @@ let%test "signature verification" =
     Utility.ed25519_verify util signing.pubkey plaintext
   end |> Result.is_ok
 
-(* TODO: actually test, and figure out unicode situation. *)
-let%test "invalid unicode decrypt" =
-  let unicode = "" in
+
+(* TODO: Not sure what I need to do to test invalid unicode decrypt as they
+ * do in the python bindings. I also have not determined what my equivalent
+ * course is when unicode handling is done in the API. *)
+let%test "unicode decrypt" =
+  let unicode = "😀" in
   begin
     Pk.Decryption.create ()           >>= fun dec ->
     Pk.Encryption.create dec.pubkey   >>= fun enc ->
     Pk.Encryption.encrypt enc unicode >>=
     Pk.Decryption.decrypt dec
   end |> function
-  | Ok "" -> true
+  | Ok "😀" -> true
   | _     -> false
+
+(* let%test "invalid unicode decrypt" =
+ *   let unicode = "" in
+ *   begin
+ *     Pk.Decryption.create ()           >>= fun dec ->
+ *     Pk.Encryption.create dec.pubkey   >>= fun enc ->
+ *     Pk.Encryption.encrypt enc unicode >>=
+ *     Pk.Decryption.decrypt dec
+ *   end |> function
+ *   | Ok "" -> true
+ *   | _     -> false *)

@@ -1,16 +1,11 @@
-; (library
-;  (name olm_test)
-;  (inline_tests)
-;  (modules Account_test Pk_test Utility_test)
-;  (libraries core olm)
-;  (preprocess (pps ppx_inline_test)))
-
-(executable
+(library
  (name olm_test)
- (modules Obenkyo Olm_test Pk_test Account_test Utility_test)
- (libraries core olm))
+ (inline_tests)
+ (modules Account_test_inline Pk_test_inline Utility_test_inline)
+ (libraries core olm)
+ (preprocess (pps ppx_inline_test)))
 
 ; (executable
-;  (name account_test)
-;  (modules Obenkyo Account_test)
-;  (libraries core olm olm.c))
+;  (name olm_test)
+;  (modules Obenkyo Olm_test Pk_test Account_test Utility_test)
+;  (libraries core olm))

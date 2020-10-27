@@ -2,14 +2,19 @@ open! Core
 open! Olm
 open! Helpers.ResultInfix
 
-let%test "verify account signature" =
-  let message = "Hello." in
-  let utility = Utility.create () in
+let%test "sha256" =
+  let input1 = "It's a secret to everybody." in
+  let input2 = "It's a secret to nobody." in
+  let util   = Utility.create () in
+  let cryptokit_hash =
+    let open Cryptokit in
+    hash_string (Hash.sha256 ()) input1
+    |> transform_string (Base64.encode_compact ())
+  in
   begin
-    Account.create ()                          >>= fun alice ->
-    Account.sign alice message                 >>= fun signature ->
-    Account.identity_keys alice                >>= fun identity_keys ->
-    Map.find_or_error identity_keys "ed25519"
-    |> Result.map_error ~f:Error.to_string_hum >>= fun signing_key ->
-    Utility.ed25519_verify utility signing_key message signature
-  end |> Result.is_ok
+    Utility.sha256 util input1 >>= fun first_hash ->
+    Utility.sha256 util input2 >>= fun second_hash ->
+    Result.return (first_hash, second_hash)
+  end |> function
+  | Ok (h1, h2) -> not (String.equal h1 h2) && String.equal h1 cryptokit_hash
+  | _ -> false
