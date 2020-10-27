@@ -2,7 +2,7 @@ open! Core
 open Helpers
 open Helpers.ResultInfix
 
-type t = { buf  : unit Ctypes.ptr
+type t = { buf  : char Ctypes.ptr
          ; util : C.Types.Utility.t Ctypes_static.ptr
          }
 
@@ -17,9 +17,12 @@ let check_error t ret =
     |> string_of_nullterm_char_ptr
   end
 
-let create () =
-  let buf = allocate_bytes_void size in
-  { buf; util = C.Funcs.utility buf }
+let alloc () =
+  let finalise = finaliser C.Types.Utility.t clear in
+  let buf = allocate_buf ~finalise size in
+  { buf; util = C.Funcs.utility (Ctypes.to_voidp buf) }
+
+let create = alloc
 
 let ed25519_verify t key message signature =
   let key_buf = string_to_ptr Ctypes.void key in

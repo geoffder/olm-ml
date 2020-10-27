@@ -2,7 +2,7 @@ open Core
 open Helpers
 open Helpers.ResultInfix
 
-type t = { buf : unit Ctypes.ptr
+type t = { buf : char Ctypes.ptr
          ; igs : C.Types.InboundGroupSession.t Ctypes_static.ptr
          }
 
@@ -18,8 +18,9 @@ let check_error t ret =
   end
 
 let alloc () =
-  let buf = allocate_bytes_void size in
-  { buf; igs = C.Funcs.inbound_group_session buf }
+  let finalise = finaliser C.Types.InboundGroupSession.t clear in
+  let buf = allocate_buf ~finalise size in
+  { buf; igs = C.Funcs.inbound_group_session (Ctypes.to_voidp buf) }
 
 let create outbound_session_key =
   let t       = alloc () in

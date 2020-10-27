@@ -2,7 +2,7 @@ open Core
 open Helpers
 open Helpers.ResultInfix
 
-type t = { buf : unit Ctypes.ptr
+type t = { buf : char Ctypes_static.ptr
          ; acc : C.Types.Account.t Ctypes_static.ptr
          }
 
@@ -18,8 +18,9 @@ let check_error t ret =
   end
 
 let alloc () =
-  let buf = allocate_bytes_void size in
-  { buf; acc = C.Funcs.account buf }
+  let finalise = finaliser C.Types.Account.t clear in
+  let buf = allocate_buf ~finalise size in
+  { buf; acc = C.Funcs.account (Ctypes.to_voidp buf) }
 
 let create () =
   let t          = alloc () in

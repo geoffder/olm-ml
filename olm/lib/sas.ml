@@ -2,7 +2,7 @@ open Core
 open Helpers
 open Helpers.ResultInfix
 
-type t = { buf : unit Ctypes.ptr
+type t = { buf : char Ctypes.ptr
          ; sas : C.Types.SAS.t Ctypes_static.ptr
          }
 
@@ -24,8 +24,9 @@ let set_their_pubkey t key =
   |> check_error t
 
 let alloc () =
-  let buf = allocate_bytes_void size in
-  { buf; sas = C.Funcs.sas buf }
+  let finalise = finaliser C.Types.SAS.t clear in
+  let buf = allocate_buf ~finalise size in
+  { buf; sas = C.Funcs.sas (Ctypes.to_voidp buf) }
 
 let create ?other_users_pubkey () =
   let t          = alloc () in

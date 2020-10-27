@@ -2,11 +2,14 @@ open Core
 open Helpers
 open Helpers.ResultInfix
 
-let public_key_size  = C.Funcs.pk_key_length () |> size_to_int
-let private_key_size = C.Funcs.pk_private_key_length () |> size_to_int
+let public_key_size_t  = C.Funcs.pk_key_length ()
+let public_key_size    = size_to_int public_key_size_t
+let private_key_size_t = C.Funcs.pk_private_key_length ()
+let private_key_size   = size_to_int private_key_size_t
 
 let signing_public_key_size = C.Funcs.pk_signing_public_key_length () |> size_to_int
-let signature_size          = C.Funcs.pk_signature_length () |> size_to_int
+let signature_size_t        = C.Funcs.pk_signature_length ()
+let signature_size          = size_to_int signature_size_t
 let signing_seed_size       = C.Funcs.pk_signing_seed_length () |> size_to_int
 
 module Message = struct
@@ -19,7 +22,7 @@ module Message = struct
 end
 
 module Encryption = struct
-  type t = { buf    : unit Ctypes.ptr
+  type t = { buf    : char Ctypes.ptr
            ; pk_enc : C.Types.PkEncryption.t Ctypes_static.ptr
            }
 
@@ -29,12 +32,15 @@ module Encryption = struct
 
   let check_error t ret =
     size_to_result ret
-    |> Result.map_error
-      ~f:(fun _ -> C.Funcs.pk_encryption_last_error t.pk_enc |> string_of_nullterm_char_ptr)
+    |> Result.map_error ~f:begin fun _ ->
+      C.Funcs.pk_encryption_last_error t.pk_enc
+      |> string_of_nullterm_char_ptr
+    end
 
   let alloc () =
-    let buf = allocate_bytes_void size in
-    { buf; pk_enc = C.Funcs.pk_encryption buf }
+    let finalise = finaliser C.Types.PkEncryption.t clear in
+    let buf = allocate_buf ~finalise size in
+    { buf; pk_enc = C.Funcs.pk_encryption (Ctypes.to_voidp buf) }
 
   let create recipient_key =
     non_empty_string ~label:"Key" recipient_key >>|
@@ -60,7 +66,7 @@ module Encryption = struct
         txt_buf    txt_len
         cipher_buf cipher_len
         mac_buf    mac_len
-        key_buf    (size_of_int public_key_size)
+        key_buf    public_key_size_t
         random_buf random_len
     in
     let () = zero_bytes Ctypes.void ~length:(size_to_int txt_len) txt_buf in
@@ -72,7 +78,7 @@ module Encryption = struct
 end
 
 module Decryption = struct
-  type t = { buf    : unit Ctypes.ptr
+  type t = { buf    : char Ctypes.ptr
            ; pk_dec : C.Types.PkDecryption.t Ctypes_static.ptr
            ; pubkey : string
            }
@@ -89,15 +95,16 @@ module Decryption = struct
     end
 
   let alloc () =
-    let buf = allocate_bytes_void size in
-    { buf; pk_dec = C.Funcs.pk_decryption buf; pubkey = "" }
+    let finalise = finaliser C.Types.PkDecryption.t clear in
+    let buf = allocate_buf ~finalise size in
+    { buf; pk_dec = C.Funcs.pk_decryption (Ctypes.to_voidp buf); pubkey = "" }
 
   let create () =
     let t          = alloc () in
     let random_buf = random_void private_key_size in
-    let random_len = size_of_int private_key_size in
+    let random_len = private_key_size_t in
     let key_buf    = allocate_bytes_void public_key_size in
-    let key_len    = size_of_int public_key_size in
+    let key_len    = public_key_size_t in
     C.Funcs.pk_key_from_private t.pk_dec key_buf key_len random_buf random_len
     |> check_error t >>| fun _ ->
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
@@ -121,7 +128,7 @@ module Decryption = struct
     let ret = C.Funcs.unpickle_pk_decryption t.pk_dec
         pass_buf   pass_len
         pickle_buf (String.length pickle |> size_of_int)
-        key_buf    (size_of_int public_key_size)
+        key_buf    public_key_size_t
     in
     let () = zero_bytes Ctypes.void ~length:(size_to_int pass_len) pass_buf in
     check_error t ret >>| fun _ ->
@@ -144,15 +151,15 @@ module Decryption = struct
 
   let private_key t =
     let key_buf = allocate_bytes_void private_key_size in
-    let key_len = size_of_int private_key_size in
+    let key_len = private_key_size_t in
     C.Funcs.pk_get_private_key t.pk_dec key_buf key_len
     |> check_error t >>| fun length ->
     string_of_ptr_clr Ctypes.void ~length key_buf
 end
 
 module Signing = struct
-  type t = { buf    : unit Ctypes.ptr
-           ; pk_sgn  : C.Types.PkSigning.t Ctypes.ptr
+  type t = { buf    : char Ctypes.ptr
+           ; pk_sgn : C.Types.PkSigning.t Ctypes.ptr
            ; pubkey : string
            }
 
@@ -168,13 +175,14 @@ module Signing = struct
     end
 
   let alloc () =
-    let buf = allocate_bytes_void size in
-    { buf; pk_sgn = C.Funcs.pk_signing buf; pubkey = "" }
+    let finalise = finaliser C.Types.PkSigning.t clear in
+    let buf = allocate_buf ~finalise size in
+    { buf; pk_sgn = C.Funcs.pk_signing (Ctypes.to_voidp buf); pubkey = "" }
 
   let create seed =
     non_empty_string ~label:"Seed" seed >>| string_to_ptr Ctypes.void >>= fun seed_buf ->
     let seed_len = String.length seed |> size_of_int in
-    let key_len  = size_of_int public_key_size in
+    let key_len  = public_key_size_t in
     let key_buf  = allocate_bytes_void signing_public_key_size in
     let t        = alloc () in
     let ret = C.Funcs.pk_signing_key_from_seed t.pk_sgn key_buf key_len seed_buf seed_len in
@@ -188,7 +196,7 @@ module Signing = struct
     let msg_buf = string_to_ptr Ctypes.void msg_str in
     let msg_len = String.length msg_str |> size_of_int in
     let sig_buf = allocate_bytes_void signature_size in
-    C.Funcs.pk_sign t.pk_sgn msg_buf msg_len sig_buf (size_of_int signature_size)
+    C.Funcs.pk_sign t.pk_sgn msg_buf msg_len sig_buf signature_size_t
     |> check_error t >>| fun _ ->
     string_of_ptr Ctypes.void ~length:signature_size sig_buf
 end

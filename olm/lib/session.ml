@@ -30,7 +30,7 @@ end = struct
     else Result.fail "Ciphertext can't be empty."
 end
 
-type t = { buf : unit Ctypes.ptr
+type t = { buf : char Ctypes.ptr
          ; ses : C.Types.Session.t Ctypes_static.ptr
          }
 
@@ -46,8 +46,9 @@ let check_error t ret =
   end
 
 let alloc () =
-  let buf = allocate_bytes_void size in
-  { buf; ses = C.Funcs.session buf }
+  let finalise = finaliser C.Types.Session.t clear in
+  let buf = allocate_buf ~finalise size in
+  { buf; ses = C.Funcs.session (Ctypes.to_voidp buf) }
 
 let create_inbound ?identity_key account = function
   | Message.Message _ -> Result.fail "PreKey message is required."

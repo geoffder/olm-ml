@@ -7,11 +7,17 @@ module ResultInfix = struct
   let ( >>= ) r f = Result.bind ~f r
 end
 
+let allocate_buf ?finalise bytes : char Ctypes.ptr =
+  Ctypes.(allocate_n ?finalise char ~count:bytes)
+
 let allocate_type_void t : unit Ctypes.ptr =
   Ctypes.(allocate_n t ~count:1 |> to_voidp)
 
 let allocate_bytes_void bytes : unit Ctypes.ptr =
   Ctypes.(allocate_n char ~count:bytes |> to_voidp)
+
+let finaliser t clear char_ptr =
+  Ctypes.(coerce (ptr char) (ptr t) char_ptr) |> clear |> ignore
 
 let size_of_int = Unsigned.Size_t.of_int
 let size_to_int = Unsigned.Size_t.to_int
