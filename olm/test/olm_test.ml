@@ -1,6 +1,4 @@
-open! Core
-open Olm
-
-let%test "a" = C.Funcs.pk_signing_size ()
-               |> Unsigned.Size_t.to_int
-               |> ( = ) 100
+let () =
+  Pk_test.main ();
+  Account_test.main ();
+  Utility_test.main ()

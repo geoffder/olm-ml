@@ -1,17 +1,29 @@
 open! Core
 open! Olm
 open! Helpers.ResultInfix
+open! Obenkyo
 
-let message = "Hello."
-let utility = Utility.create ()
-let alice   = Account.create () |> Result.ok_or_failwith
+let main () =
+  print_endline "Running Utility tests...";
 
-let%test "verify account signature" =
-  let res =
-    Account.sign alice message                 >>= fun signature ->
-    Account.identity_keys alice                >>= fun identity_keys ->
-    Map.find_or_error identity_keys "ed25519"
-    |> Result.map_error ~f:Error.to_string_hum >>= fun signing_key ->
-    Utility.ed25519_verify utility signing_key message signature
+  let () =
+    test "sha256" begin
+      let input1 = "It's a secret to everybody." in
+      let input2 = "It's a secret to nobody." in
+      let util   = Utility.create () in
+      let cryptokit_hash =
+        let open Cryptokit in
+        hash_string (Hash.sha256 ()) input1
+        |> transform_string (Base64.encode_compact ())
+      in
+      begin
+        Utility.sha256 util input1 >>= fun first_hash ->
+        Utility.sha256 util input2 >>= fun second_hash ->
+        Result.return (first_hash, second_hash)
+      end |> function
+      | Ok (h1, h2) -> not (String.equal h1 h2) && String.equal h1 cryptokit_hash
+      | _ -> false
+    end
   in
-  Result.is_ok res
+
+  print_endline "Done!"
