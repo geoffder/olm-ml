@@ -16,27 +16,27 @@ let json_of_option con opt : Yojson.Safe.t =
 
 let assoc_of_yojson j =
   try U.to_assoc j |> Result.return
-  with _ -> Result.fail "Input yojson is not an `Assoc."
+  with _ -> Result.fail (`YojsonError "Input is not an `Assoc.")
 
 let string_of_yojson j =
   try U.to_string j |> Result.return
-  with _ -> Result.fail "Input yojson is not a `String."
+  with _ -> Result.fail (`YojsonError "Input is not a `String.")
 
 let float_of_yojson j =
   try U.to_float j |> Result.return
-  with _ -> Result.fail "Input yojson is not a `Float."
+  with _ -> Result.fail (`YojsonError "Input is not a `Float.")
 
 let int_of_yojson j =
   try U.to_int j |> Result.return
-  with _ -> Result.fail "Input yojson is not an `Int."
+  with _ -> Result.fail (`YojsonError "Input is not an `Int.")
 
 let bool_of_yojson j =
   try U.to_bool j |> Result.return
-  with _ -> Result.fail "Input yojson is not a `Bool."
+  with _ -> Result.fail (`YojsonError "Input is not a `Bool.")
 
 let list_of_yojson j =
   try U.to_list j |> Result.return
-  with _ -> Result.fail "Input yojson is not a `List."
+  with _ -> Result.fail (`YojsonError "Input is not a `List.")
 
 let typed_list_of_yojson of_yojson j =
   list_of_yojson j |> Result.bind ~f:(List.map ~f:of_yojson >> Result.all)
@@ -53,7 +53,7 @@ module StringMap = struct
     let open Result in
     alist_of_yojson a_of_yojson j >>= fun l ->
     try Map.of_alist_exn (module String) l |> Result.return
-    with _ -> Result.fail "Invalid 'a string_map."
+    with _ -> Result.fail (`YojsonError "Invalid 'a string_map.")
 
   let to_yojson a_to_yojson a =
     let yo_pair (k, v) = k, a_to_yojson v in

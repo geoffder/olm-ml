@@ -14,7 +14,7 @@ let check_error t ret =
   size_to_result ret
   |> Result.map_error ~f:begin fun _ ->
     C.Funcs.utility_last_error t.util
-    |> string_of_nullterm_char_ptr
+    |> OlmError.of_last_error
   end
 
 let alloc () =
@@ -36,8 +36,8 @@ let ed25519_verify t key message signature =
   check_error t ret
 
 let sha256 t input =
-  let in_buf = string_to_ptr Ctypes.void input in
-  let in_len = String.length input |> size_of_int in
+  let in_buf   = string_to_ptr Ctypes.void input in
+  let in_len   = String.length input |> size_of_int in
   let hash_len = C.Funcs.sha256_length t.util in
   let hash_buf = allocate_bytes_void (size_to_int hash_len) in
   C.Funcs.sha256 t.util in_buf in_len hash_buf hash_len

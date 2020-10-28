@@ -5,13 +5,13 @@ open! Helpers.ResultInfix
 let plaintext = "It's a secret to everybody"
 
 let create_session () =
-  Account.create ()                    >>= fun alice ->
-  Account.create ()                    >>= fun bob ->
-  Account.identity_keys bob            >>= fun id_keys ->
-  Account.generate_one_time_keys bob 1 >>= fun _ ->
-  Account.one_time_keys bob            >>= fun keys ->
+  Account.create ()                      >>= fun alice ->
+  Account.create ()                      >>= fun bob ->
+  Account.identity_keys bob              >>= fun id_keys ->
+  Account.generate_one_time_keys bob 1   >>= fun _ ->
+  Account.one_time_keys bob              >>= fun keys ->
   List.hd (Map.data keys.curve25519)
-  |> Result.of_option ~error:"Missing one-time." >>= fun one_time ->
+  |> Result.of_option ~error:`MissingKey >>= fun one_time ->
   Session.create_outbound alice id_keys.curve25519 one_time  >>= fun session ->
   Result.return (alice, bob, session)
 
@@ -22,7 +22,7 @@ let%test "creation" =
     Session.id sess_1 >>= fun id_1 ->
     Session.id sess_2 >>= fun id_2 ->
     not (String.equal id_1 id_2)
-    |> Result.ok_if_true ~error:"Shouldn't be the same."
+    |> Result.ok_if_true ~error:`IDCollision
   end |> Result.is_ok
 
 let%test "clear" =
@@ -38,15 +38,13 @@ let%test "pickle" =
     Session.id session         >>= fun session_id ->
     Session.from_pickle pickle >>= fun unpickled ->
     Session.id unpickled       >>= fun unpickled_id ->
-    String.equal session_id unpickled_id |> Result.ok_if_true ~error:"Wrong id."
+    String.equal session_id unpickled_id |> Result.ok_if_true ~error:`WrongID
   end |> Result.is_ok
 
 let%test "invalid pickle" =
-  Session.from_pickle ""
-  |> Result.error
-  |> function
-  | Some "Pickle can't be empty." -> true
-  | _                             -> false
+  match Session.from_pickle "" with
+  | Error (`ValueError _) -> true
+  | _                     -> false
 
 (* NOTE: In the python tests, they pickle an account, then use session unpickle.
  * This still would lead to a "BAD_ACCOUNT_KEY" error but I suspect that it is
@@ -57,19 +55,19 @@ let%test "wrong passphrase pickle" =
     Session.pickle session ~pass:"admin" >>=
     Session.from_pickle ~pass:""
   end |> function
-  | Error "BAD_ACCOUNT_KEY" -> true
-  | _                       -> false
+  | Error `BadAccountKey -> true
+  | _                    -> false
 
 let%test "encrypt" =
   begin
     create_session ()                 >>= fun (_, bob, session) ->
     Session.encrypt session plaintext >>= fun msg -> begin msg |> function
       | Session.Message.PreKey _ -> Result.return ()
-      | _                        -> Result.fail "Should be pre-key."
+      | _                        -> Result.fail `ShouldBePreKey
     end >>= fun () ->
     Session.create_inbound bob msg  >>= fun bob_session ->
     Session.decrypt bob_session msg >>= fun decrypted ->
-    String.equal plaintext decrypted |> Result.ok_if_true ~error:"Wrong decrypt."
+    String.equal plaintext decrypted |> Result.ok_if_true ~error:`WrongDecrypt
   end |> Result.is_ok
 
 let%test "empty message" =
@@ -79,12 +77,12 @@ let%test "empty message" =
 
 let%test "inbound with id" =
   begin
-    create_session ()                                             >>= fun (alice, bob, session) ->
-    Session.encrypt session plaintext                             >>= fun msg ->
-    Account.identity_keys alice                                   >>= fun keys ->
-    Session.create_inbound ~identity_key:keys.curve25519 bob msg  >>= fun bob_session ->
-    Session.decrypt bob_session msg                               >>= fun decrypted ->
-    String.equal plaintext decrypted |> Result.ok_if_true ~error:"Wrong decrypt."
+    create_session ()                                            >>= fun (alice, bob, session) ->
+    Session.encrypt session plaintext                            >>= fun msg ->
+    Account.identity_keys alice                                  >>= fun keys ->
+    Session.create_inbound ~identity_key:keys.curve25519 bob msg >>= fun bob_session ->
+    Session.decrypt bob_session msg                              >>= fun decrypted ->
+    String.equal plaintext decrypted |> Result.ok_if_true ~error:`WrongDecrypt
   end |> Result.is_ok
 
 let%test "two messages" =
@@ -97,13 +95,13 @@ let%test "two messages" =
     Session.remove_one_time_keys bob_session bob                 >>= fun _ ->
     Session.decrypt bob_session msg                              >>= fun decrypted ->
     String.equal plaintext decrypted
-    |> Result.ok_if_true ~error:"Wrong decrypt."                 >>= fun _ ->
+    |> Result.ok_if_true ~error:`WrongDecrypt                    >>= fun _ ->
     Session.encrypt bob_session bob_plaintext                    >>= fun bob_msg ->
     not (Session.Message.is_pre_key bob_msg)
-    |> Result.ok_if_true ~error:"Shouldn't be pre-key."          >>= fun _ ->
+    |> Result.ok_if_true ~error:`ShouldBeMessage                 >>= fun _ ->
     Session.decrypt session bob_msg                              >>= fun bob_decrypted ->
     String.equal bob_plaintext bob_decrypted
-    |> Result.ok_if_true ~error:"Wrong decrypt."
+    |> Result.ok_if_true ~error:`WrongDecrypt
   end |> Result.is_ok
 
 let%test "invalid" =
@@ -111,16 +109,16 @@ let%test "invalid" =
     create_session ()            >>= fun (alice, _, session) ->
     Session.Message.create "x" 1 >>= fun msg ->
     Session.matches session msg |> begin function
-      | Error "PreKey message is required." -> Result.return ()
-      | _                                   -> Result.fail "Message shouldn't work."
+      | Error (`ValueError _) -> Result.return ()
+      | _                     -> Result.fail `MessageShouldFail
     end >>= fun _ ->
     Session.create_outbound alice "" "x" |> begin function
-      | Error "Identity key can't be empty." -> Result.return ()
-      | _                                    -> Result.fail "Empty id should be error."
+      | Error (`ValueError _) -> Result.return ()
+      | _                     -> Result.fail `EmptyIdShouldFail
     end >>= fun _ ->
     Session.create_outbound alice "x" "" |> begin function
-      | Error "One time key can't be empty." -> Result.return ()
-      | _                                    -> Result.fail "Empty key should be error."
+      | Error (`ValueError _) -> Result.return ()
+      | _                     -> Result.fail `EmptyKeyShouldFail
     end
   end |> Result.is_ok
 

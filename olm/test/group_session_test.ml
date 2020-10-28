@@ -45,8 +45,8 @@ let%test "invalid decrypt" =
     InboundGroupSession.create       >>= fun inbound ->
     InboundGroupSession.decrypt inbound ""
   end |> function
-  | Error "Ciphertext can't be empty." -> true
-  | _                                  -> false
+  | Error (`ValueError _) -> true
+  | _                     -> false
 
 let%test "inbound pickle" =
   begin
@@ -113,8 +113,8 @@ let%test "decrypt failure" =
     OutboundGroupSession.encrypt eve_outbound "Test" >>=
     InboundGroupSession.decrypt inbound
   end |> function
-  | Error "BAD_SIGNATURE" -> true
-  | _                     -> false
+  | Error `BadSignature -> true
+  | _                   -> false
 
 let%test "id" =
   begin
@@ -134,8 +134,8 @@ let%test "incorrect outbound pickle password" =
     OutboundGroupSession.pickle ~pass:"admin" >>=
     OutboundGroupSession.from_pickle
   end |> function
-  | Error "BAD_ACCOUNT_KEY" -> true
-  | _                       -> false
+  | Error `BadAccountKey -> true
+  | _                    -> false
 
 let%test "outbound clear" =
   begin

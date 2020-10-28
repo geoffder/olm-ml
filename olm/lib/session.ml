@@ -8,7 +8,7 @@ module Message : sig
   val is_pre_key : t -> bool
   val to_size    : t -> Unsigned.size_t
   val to_string  : t -> string
-  val create     : string -> int -> (t, string) result
+  val create     : string -> int -> (t, [> `ValueError of string ]) result
 end = struct
   type t = PreKey of string | Message of string
 
@@ -36,8 +36,8 @@ end = struct
       match message_type_int with
       | 0 -> Result.return (PreKey txt)
       | 1 -> Result.return (Message txt)
-      | _ -> Result.fail "Invalid message type (not size_t = 0 | 1)."
-    else Result.fail "Ciphertext can't be empty."
+      | _ -> Result.fail (`ValueError "Invalid message type (not size_t = 0 | 1).")
+    else Result.fail (`ValueError "Ciphertext can't be empty.")
 end
 
 type t = { buf : char Ctypes.ptr
@@ -52,7 +52,7 @@ let check_error t ret =
   size_to_result ret
   |> Result.map_error ~f:begin fun _ ->
     C.Funcs.session_last_error t.ses
-    |> string_of_nullterm_char_ptr
+    |> OlmError.of_last_error
   end
 
 let alloc () =
@@ -61,7 +61,7 @@ let alloc () =
   { buf; ses = C.Funcs.session (Ctypes.to_voidp buf) }
 
 let create_inbound ?identity_key (acc : Account.t) = function
-  | Message.Message _ -> Result.fail "PreKey message is required."
+  | Message.Message _ -> Result.fail (`ValueError "PreKey message is required.")
   | PreKey ciphertext ->
     let cipher_buf = string_to_ptr Ctypes.void ciphertext in
     let cipher_len = String.length ciphertext |> size_of_int in
@@ -152,7 +152,7 @@ let id t =
   string_of_ptr_clr Ctypes.void ~length:(size_to_int id_len) id_buf
 
 let matches ?identity_key t = function
-  | Message.Message _ -> Result.fail "PreKey message is required."
+  | Message.Message _ -> Result.fail (`ValueError "PreKey message is required.")
   | PreKey ciphertext ->
     let cipher_buf () = string_to_ptr Ctypes.void ciphertext in
     let cipher_len    = String.length ciphertext |> size_of_int in

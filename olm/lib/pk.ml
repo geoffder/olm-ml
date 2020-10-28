@@ -34,7 +34,7 @@ module Encryption = struct
     size_to_result ret
     |> Result.map_error ~f:begin fun _ ->
       C.Funcs.pk_encryption_last_error t.pk_enc
-      |> string_of_nullterm_char_ptr
+      |> OlmError.of_last_error
     end
 
   let alloc () =
@@ -91,7 +91,7 @@ module Decryption = struct
     size_to_result ret
     |> Result.map_error ~f:begin fun _ ->
       C.Funcs.pk_decryption_last_error t.pk_dec
-      |> string_of_nullterm_char_ptr
+      |> OlmError.of_last_error
     end
 
   let alloc () =
@@ -171,7 +171,7 @@ module Signing = struct
     size_to_result ret
     |> Result.map_error ~f:begin fun _ ->
       C.Funcs.pk_signing_last_error t.pk_sgn
-      |> string_of_nullterm_char_ptr
+      |> OlmError.of_last_error
     end
 
   let alloc () =

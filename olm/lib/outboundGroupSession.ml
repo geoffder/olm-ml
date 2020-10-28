@@ -14,7 +14,7 @@ let check_error t ret =
   size_to_result ret
   |> Result.map_error ~f:begin fun _ ->
     C.Funcs.outbound_group_session_last_error t.ogs
-    |> string_of_nullterm_char_ptr
+    |> OlmError.of_last_error
   end
 
 let alloc () =

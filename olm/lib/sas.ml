@@ -14,7 +14,7 @@ let check_error t ret =
   size_to_result ret
   |> Result.map_error ~f:begin fun _ ->
     C.Funcs.sas_last_error t.sas
-    |> string_of_nullterm_char_ptr
+    |> OlmError.of_last_error
   end
 
 let set_their_pubkey t key =
@@ -54,7 +54,7 @@ let generate_bytes t extra_info length =
     C.Funcs.sas_generate_bytes t.sas info_buf info_len out_buf (size_of_int length)
     |> check_error t >>| fun _ ->
     string_of_ptr Ctypes.void ~length out_buf
-  else Result.fail "The length needs to be a positive integer value."
+  else Result.fail (`ValueError "The length needs to be a positive integer value.")
 
 let calculate_mac t msg extra_info =
   let msg_buf  = string_to_ptr Ctypes.void msg in

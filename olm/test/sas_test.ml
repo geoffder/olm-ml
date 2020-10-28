@@ -23,9 +23,9 @@ let%test "other_key_setting" =
   begin
     Sas.create () >>= fun chad ->
     Sas.create () >>= fun gaston ->
-    not (Sas.other_key_set chad) |> Result.ok_if_true ~error:"Key already set." >>= fun _ ->
+    not (Sas.other_key_set chad) |> Result.ok_if_true ~error:`KeyAlreadySet >>= fun _ ->
     Sas.pubkey gaston >>= Sas.set_their_pubkey chad >>= fun _ ->
-    Sas.other_key_set chad |> Result.ok_if_true ~error:"Key not set."
+    Sas.other_key_set chad |> Result.ok_if_true ~error:`KeyNotSet
   end |> Result.is_ok
 
 let%test "bytes_generating" =
@@ -33,19 +33,19 @@ let%test "bytes_generating" =
     Sas.create ()   >>= fun chad ->
     Sas.pubkey chad >>= fun chads_key ->
     Sas.create ~other_users_pubkey:chads_key () >>= fun gaston ->
-    Sas.other_key_set gaston |> Result.ok_if_true ~error:"Key not set." >>= fun _ ->
+    Sas.other_key_set gaston |> Result.ok_if_true ~error:`KeyNotSet >>= fun _ ->
     Sas.generate_bytes chad extra_info 5 |> begin function
-      | Error "OLM_SAS_THEIR_KEY_NOT_SET" -> Result.return ()
-      | _                                 -> Result.fail "Should have failed."
+      | Error `SasTheirKeyNotSet -> Result.return ()
+      | _                        -> Result.fail `ShouldFail
     end >>= fun () ->
     Sas.pubkey gaston >>= Sas.set_their_pubkey chad >>= fun _ ->
     Sas.generate_bytes chad extra_info 0 |> begin function
-      | Error _ -> Result.return ()
-      | _       -> Result.fail "Should fail on non-positive length."
+      | Error (`ValueError _) -> Result.return ()
+      | _                     -> Result.fail `ShouldFailOnNonPosLength
     end >>= fun () ->
     Sas.generate_bytes chad extra_info 5   >>= fun chad_bytes ->
     Sas.generate_bytes gaston extra_info 5 >>= fun gaston_bytes ->
-    String.equal chad_bytes gaston_bytes |> Result.ok_if_true ~error:"Wrong."
+    String.equal chad_bytes gaston_bytes |> Result.ok_if_true ~error:`BytesShouldMatch
   end |> Result.is_ok
 
 let%test "mac_generating" =
@@ -53,14 +53,14 @@ let%test "mac_generating" =
     Sas.create () >>= fun chad ->
     Sas.create () >>= fun gaston ->
     Sas.calculate_mac chad message extra_info |> begin function
-      | Error "OLM_SAS_THEIR_KEY_NOT_SET" -> Result.return ()
-      | _                                 -> Result.fail "Should have failed."
+      | Error `SasTheirKeyNotSet -> Result.return ()
+      | _                        -> Result.fail `ShouldFail
     end >>= fun () ->
     Sas.pubkey gaston >>= Sas.set_their_pubkey chad   >>= fun _ ->
     Sas.pubkey chad   >>= Sas.set_their_pubkey gaston >>= fun _ ->
     Sas.calculate_mac chad message extra_info   >>= fun chad_mac ->
     Sas.calculate_mac gaston message extra_info >>= fun gaston_mac ->
-    String.equal chad_mac gaston_mac |> Result.ok_if_true ~error:"Wrong."
+    String.equal chad_mac gaston_mac |> Result.ok_if_true ~error:`MacsShouldMatch
   end |> Result.is_ok
 
 let%test "cross_language_mac" =
@@ -87,5 +87,5 @@ let%test "cross_language_mac" =
     |> Sas.check_error alice                   >>= fun _ ->
     Sas.set_their_pubkey alice bob_key         >>= fun _ ->
     Sas.calculate_mac alice message extra_info >>= fun alice_mac ->
-    String.equal alice_mac expected_mac |> Result.ok_if_true ~error:"Wrong."
+    String.equal alice_mac expected_mac |> Result.ok_if_true ~error:`MacsShouldMatch
   end |> Result.is_ok

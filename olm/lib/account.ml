@@ -7,9 +7,9 @@ module IdentityKeys : sig
                    ; ed25519    : string
                    }
   val equal     : t -> t -> bool
-  val of_yojson : Yojson.Safe.t -> (t, string) result
+  val of_yojson : Yojson.Safe.t -> (t, [> `YojsonError of string ]) result
   val to_yojson : t -> Yojson.Safe.t
-  val of_string : string -> (t, string) result
+  val of_string : string -> (t, [> `YojsonError of string ]) result
   val to_string : t -> string
 end = struct
   type t = { curve25519 : string
@@ -36,9 +36,9 @@ end
 module OneTimeKeys : sig
   type t = private { curve25519 : (string, string, String.comparator_witness) Map.t }
   val equal     : t -> t -> bool
-  val of_yojson : Yojson.Safe.t -> (t, string) result
+  val of_yojson : Yojson.Safe.t -> (t, [> `YojsonError of string ]) result
   val to_yojson : t -> Yojson.Safe.t
-  val of_string : string -> (t, string) result
+  val of_string : string -> (t, [> `YojsonError of string ]) result
   val to_string : t -> string
 end = struct
   type t = { curve25519 : (string, string, String.comparator_witness) Map.t }
@@ -69,7 +69,7 @@ let check_error t ret =
   size_to_result ret
   |> Result.map_error ~f:begin fun _ ->
     C.Funcs.account_last_error t.acc
-    |> string_of_nullterm_char_ptr
+    |> OlmError.of_last_error
   end
 
 let alloc () =

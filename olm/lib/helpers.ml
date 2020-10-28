@@ -26,7 +26,7 @@ let olm_error = C.Funcs.error () |> size_to_int
 
 let size_to_result size =
   match size_to_int size with
-  | e when e = olm_error -> Result.Error "olm_error"
+  | e when e = olm_error -> Result.Error `OlmError
   | i                    -> Result.return i
 
 let string_of_nullterm_char_ptr char_ptr =
@@ -67,4 +67,4 @@ let random_uint8 len = random_chars len |> Ctypes.(coerce (ptr char) (ptr uint8_
 let non_empty_string ?(label="String") str =
   if String.length str > 0
   then Result.return str
-  else Result.fail (label ^ " can't be empty.")
+  else Result.fail (`ValueError (label ^ " can't be empty."))

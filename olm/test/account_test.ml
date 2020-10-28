@@ -18,11 +18,9 @@ let%test "pickle" =
   | _       -> false
 
 let%test "invalid pickle" =
-  Account.from_pickle ""
-  |> Result.error
-  |> function
-  | Some "Pickle can't be empty." -> true
-  | _                             -> false
+  match Account.from_pickle "" with
+  | Error (`ValueError _) -> true
+  | _                     -> false
 
 let%test "passphrase pickle" =
   let pass = "password" in
@@ -43,7 +41,7 @@ let%test "wrong passphrase pickle" =
     >>= Account.pickle ~pass:"foo"
     >>= Account.from_pickle ~pass:"bar"
   end |> function
-  | Error "BAD_ACCOUNT_KEY" -> true
+  | Error `BadAccountKey -> true
   | _                       -> false
 
 let%test "get identity keys" =
@@ -89,8 +87,8 @@ let%test "invalid signature" =
     Account.identity_keys dio >>= fun keys ->
     Utility.ed25519_verify utility keys.ed25519 message signature
   end |> function
-  | Error "BAD_MESSAGE_MAC" -> true
-  | _                       -> false
+  | Error `BadMessageMac -> true
+  | _                    -> false
 
 let%test "signature verification twice" =
   let message = "It was me, Dio!" in
@@ -102,7 +100,7 @@ let%test "signature verification twice" =
     let repeat_sign () =
       Account.sign dio message |> function
       | Ok s when String.equal s signature -> Result.return ()
-      | _                                  -> Result.fail "Signature mismatch"
+      | _                                  -> Result.fail `SignatureMismatch
     in
     Utility.ed25519_verify utility keys.ed25519 message signature >>= fun _ ->
     repeat_sign () >>= fun _ ->

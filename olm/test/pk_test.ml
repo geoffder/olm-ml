@@ -33,8 +33,8 @@ let%test "invalid decryption" =
     { msg with ephemeral_key ="?" }
     |> Pk.Decryption.decrypt dec
   end |> function
-  | Error "BAD_MESSAGE_MAC" -> true
-  | _                       -> false
+  | Error `BadMessageMac -> true
+  | _                    -> false
 
 let%test "pickle" =
   let plaintext = "I've got a secret." in
@@ -58,8 +58,8 @@ let%test "invalid pass pickling" =
     Pk.Decryption.pickle ~pass:"foo" >>=
     Pk.Decryption.from_pickle ~pass:"bar"
   end |> function
-  | Error "BAD_ACCOUNT_KEY" -> true
-  | _                       -> false
+  | Error `BadAccountKey -> true
+  | _                    -> false
 
 let%test "signature verification" =
   let seed      = Pk.Signing.generate_seed () in
