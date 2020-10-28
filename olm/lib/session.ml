@@ -4,8 +4,10 @@ open Helpers.ResultInfix
 
 module Message : sig
   type t = private PreKey of string | Message of string
-  val to_size    : t -> Unsigned.size_t
   val ciphertext : t -> string
+  val is_pre_key : t -> bool
+  val to_size    : t -> Unsigned.size_t
+  val to_string  : t -> string
   val create     : string -> int -> (t, string) result
 end = struct
   type t = PreKey of string | Message of string
@@ -13,13 +15,21 @@ end = struct
   let message_type_pre_key = size_of_int 0
   let message_type_message = size_of_int 1
 
+  let ciphertext = function
+    | PreKey c  -> c
+    | Message c -> c
+
+  let is_pre_key = function
+    | PreKey _ -> true
+    | _        -> false
+
   let to_size = function
     | PreKey  _ -> message_type_pre_key
     | Message _ -> message_type_message
 
-  let ciphertext = function
-    | PreKey c  -> c
-    | Message c -> c
+  let to_string = function
+    | PreKey c  -> sprintf "PreKey ( %s )" c
+    | Message c -> sprintf "Message ( %s )" c
 
   let create txt message_type_int =
     if String.length txt > 0 then
@@ -36,7 +46,7 @@ type t = { buf : char Ctypes.ptr
 
 let size = C.Funcs.session_size () |> size_to_int
 
-let clear = C.Funcs.clear_session
+let clear ses = C.Funcs.clear_session ses |> size_to_result
 
 let check_error t ret =
   size_to_result ret
@@ -50,7 +60,7 @@ let alloc () =
   let buf = allocate_buf ~finalise size in
   { buf; ses = C.Funcs.session (Ctypes.to_voidp buf) }
 
-let create_inbound ?identity_key account = function
+let create_inbound ?identity_key (acc : Account.t) = function
   | Message.Message _ -> Result.fail "PreKey message is required."
   | PreKey ciphertext ->
     let cipher_buf = string_to_ptr Ctypes.void ciphertext in
@@ -61,12 +71,15 @@ let create_inbound ?identity_key account = function
       | Some key when String.length key > 0 ->
         let key_buf = string_to_ptr Ctypes.void key in
         let key_len = String.length key |> size_of_int in
-        C.Funcs.create_inbound_session_from t.ses account key_buf key_len cipher_buf cipher_len
-      | _ -> C.Funcs.create_inbound_session t.ses account cipher_buf cipher_len
+        C.Funcs.create_inbound_session_from
+          t.ses      acc.acc
+          key_buf    key_len
+          cipher_buf cipher_len
+      | _ -> C.Funcs.create_inbound_session t.ses acc.acc cipher_buf cipher_len
     end |> check_error t >>| fun _ ->
     t
 
-let create_outbound account identity_key one_time_key =
+let create_outbound (acc: Account.t) identity_key one_time_key =
   non_empty_string ~label:"Identity key" identity_key >>|
   string_to_ptr Ctypes.void >>= fun id_buf ->
   non_empty_string ~label:"One time key" one_time_key >>|
@@ -77,7 +90,7 @@ let create_outbound account identity_key one_time_key =
   let random_len = C.Funcs.create_outbound_session_random_length t.ses in
   let random_buf = random_void (size_to_int random_len) in
   C.Funcs.create_outbound_session
-    t.ses      account
+    t.ses      acc.acc
     id_buf     id_len
     one_buf    one_len
     random_buf random_len
@@ -139,7 +152,7 @@ let id t =
   string_of_ptr_clr Ctypes.void ~length:(size_to_int id_len) id_buf
 
 let matches ?identity_key t = function
-  | Message.Message _ -> Result.fail "Matches can only be called on pre-key messages."
+  | Message.Message _ -> Result.fail "PreKey message is required."
   | PreKey ciphertext ->
     let cipher_buf () = string_to_ptr Ctypes.void ciphertext in
     let cipher_len    = String.length ciphertext |> size_of_int in
@@ -152,3 +165,9 @@ let matches ?identity_key t = function
       | _ -> C.Funcs.matches_inbound_session t.ses (cipher_buf ()) cipher_len
     end |> check_error t >>| fun matched ->
     matched > 0
+
+(* This lives in Account in the official API example, but that would be a cyclic
+ * dependency, so I have moved it here. *)
+let remove_one_time_keys t (acc : Account.t) =
+  C.Funcs.remove_one_time_keys acc.acc t.ses
+  |> Account.check_error acc
