@@ -8,7 +8,7 @@ type t = { buf : char Ctypes.ptr
 
 let size = C.Funcs.sas_size () |> size_to_int
 
-let clear = C.Funcs.clear_sas
+let clear sas = C.Funcs.clear_sas sas |> size_to_result
 
 let check_error t ret =
   size_to_result ret
@@ -34,9 +34,8 @@ let create ?other_users_pubkey () =
   let random_buf = random_void (size_to_int random_len) in
   C.Funcs.create_sas t.sas random_buf random_len
   |> check_error t >>= fun r ->
-  match other_users_pubkey with
-  | None        -> Result.return r
-  | Some pubkey -> set_their_pubkey t pubkey
+  Option.value_map ~default:(Ok r) ~f:(set_their_pubkey t) other_users_pubkey
+  >>| fun _ -> t
 
 let pubkey t =
   let key_len = C.Funcs.sas_pubkey_length t.sas in
@@ -45,10 +44,10 @@ let pubkey t =
   |> check_error t >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int key_len) key_buf
 
-let other_key_set t = C.Funcs.sas_is_their_key_set t > 0
+let other_key_set t = C.Funcs.sas_is_their_key_set t.sas > 0
 
 let generate_bytes t extra_info length =
-  if length < 1 then
+  if length > 0 then
     let info_buf = string_to_ptr Ctypes.void extra_info in
     let info_len = String.length extra_info |> size_of_int in
     let out_buf  = allocate_bytes_void length in

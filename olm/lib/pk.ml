@@ -28,7 +28,7 @@ module Encryption = struct
 
   let size = C.Funcs.pk_encryption_size () |> size_to_int
 
-  let clear = C.Funcs.clear_pk_encryption
+  let clear pk_enc = C.Funcs.clear_pk_encryption pk_enc |> size_to_result
 
   let check_error t ret =
     size_to_result ret
@@ -85,7 +85,7 @@ module Decryption = struct
 
   let size = C.Funcs.pk_decryption_size () |> size_to_int
 
-  let clear = C.Funcs.clear_pk_decryption
+  let clear pk_dec = C.Funcs.clear_pk_decryption pk_dec |> size_to_result
 
   let check_error t ret =
     size_to_result ret
@@ -165,7 +165,7 @@ module Signing = struct
 
   let size = C.Funcs.pk_signing_size () |> size_to_int
 
-  let clear = C.Funcs.clear_pk_signing
+  let clear pk_sgn = C.Funcs.clear_pk_signing pk_sgn |> size_to_result
 
   let check_error t ret =
     size_to_result ret

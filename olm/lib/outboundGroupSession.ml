@@ -8,7 +8,7 @@ type t = { buf : char Ctypes.ptr
 
 let size = C.Funcs.outbound_group_session_size () |> size_to_int
 
-let clear = C.Funcs.clear_outbound_group_session
+let clear ogs = C.Funcs.clear_outbound_group_session ogs |> size_to_result
 
 let check_error t ret =
   size_to_result ret

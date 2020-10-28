@@ -8,7 +8,7 @@ type t = { buf : char Ctypes.ptr
 
 let size = C.Funcs.inbound_group_session_size () |> size_to_int
 
-let clear = C.Funcs.clear_inbound_group_session
+let clear igs = C.Funcs.clear_inbound_group_session igs |> size_to_result
 
 let check_error t ret =
   size_to_result ret
@@ -56,8 +56,9 @@ let from_pickle ?(pass="") pickle =
   t
 
 let decrypt t ciphertext =
+  non_empty_string ~label:"Ciphertext" ciphertext >>= fun _ ->
   let cipher_buf () = string_to_ptr Ctypes.uint8_t ciphertext in (* max len destroys *)
-  let cipher_len = String.length ciphertext |> size_of_int in
+  let cipher_len    = String.length ciphertext |> size_of_int in
   C.Funcs.group_decrypt_max_plaintext_length t.igs (cipher_buf ()) cipher_len
   |> check_error t >>= fun max_txt_len ->
   let txt_buf = Ctypes.(allocate_n uint8_t ~count:max_txt_len) in
