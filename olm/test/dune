@@ -4,8 +4,3 @@
  (modules Account_test Pk_test Utility_test Sas_test Session_test Group_session_test)
  (libraries core olm)
  (preprocess (pps ppx_inline_test)))
-
-; (executable
-;  (name olm_test)
-;  (modules Obenkyo Olm_test_obenkyo Pk_test_obenkyo Account_test_obenkyo Utility_test_obenkyo)
-;  (libraries core olm))
