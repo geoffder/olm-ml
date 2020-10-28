@@ -8,7 +8,7 @@ type t = { buf  : char Ctypes.ptr
 
 let size = C.Funcs.utility_size () |> size_to_int
 
-let clear = C.Funcs.clear_utility
+let clear util = C.Funcs.clear_utility util |> size_to_result
 
 let check_error t ret =
   size_to_result ret
