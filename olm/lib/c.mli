@@ -206,29 +206,39 @@ module Funcs : sig
     Types.InboundGroupSession.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val unpickle_inbound_group_session :
     Types.InboundGroupSession.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val init_inbound_group_session :
     Types.InboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val import_inbound_group_session :
     Types.InboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val group_decrypt_max_plaintext_length :
     Types.InboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val group_decrypt :
@@ -236,7 +246,9 @@ module Funcs : sig
     Unsigned.uint8 Ctypes_static.ptr ->
     Unsigned.size_t ->
     Unsigned.uint8 Ctypes_static.ptr ->
-    Unsigned.size_t -> Unsigned.uint32 Ctypes_static.ptr -> Unsigned.size_t
+    Unsigned.size_t ->
+    Unsigned.uint32 Ctypes_static.ptr ->
+    Unsigned.size_t
 
   (**   *)
   val inbound_group_session_id_length :
@@ -245,12 +257,13 @@ module Funcs : sig
   (**   *)
   val inbound_group_session_id :
     Types.InboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val inbound_group_session_first_known_index :
-    (Types.InboundGroupSession.t, [ `C ]) Ctypes_static.pointer ->
-    Unsigned.uint32
+    Types.InboundGroupSession.t Ctypes_static.ptr -> Unsigned.uint32
 
   (**   *)
   val inbound_group_session_is_verified :
@@ -264,7 +277,9 @@ module Funcs : sig
   val export_inbound_group_session :
     Types.InboundGroupSession.t Ctypes_static.ptr ->
     Unsigned.uint8 Ctypes_static.ptr ->
-    Unsigned.size_t -> Unsigned.uint32 -> Unsigned.size_t
+    Unsigned.size_t ->
+    Unsigned.uint32 ->
+    Unsigned.size_t
 
   (**   *)
   val outbound_group_session_size : unit -> Unsigned.size_t
@@ -290,14 +305,18 @@ module Funcs : sig
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val unpickle_outbound_group_session :
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val init_outbound_group_session_random_length :
@@ -306,19 +325,24 @@ module Funcs : sig
   (**   *)
   val init_outbound_group_session :
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val group_encrypt_message_length :
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.size_t -> Unsigned.size_t
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val group_encrypt :
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
     Unsigned.uint8 Ctypes_static.ptr ->
     Unsigned.size_t ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val outbound_group_session_id_length :
@@ -327,7 +351,9 @@ module Funcs : sig
   (**   *)
   val outbound_group_session_id :
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val outbound_group_session_message_index :
@@ -340,12 +366,16 @@ module Funcs : sig
   (**   *)
   val outbound_group_session_key :
     Types.OutboundGroupSession.t Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val get_library_version :
     Unsigned.uint8 Ctypes_static.ptr ->
-    Unsigned.uint8 Ctypes_static.ptr -> Unsigned.uint8 Ctypes_static.ptr -> unit
+    Unsigned.uint8 Ctypes_static.ptr ->
+    Unsigned.uint8 Ctypes_static.ptr ->
+    unit
 
   (**   *)
   val account_size : unit -> Unsigned.size_t
@@ -397,28 +427,36 @@ module Funcs : sig
     Types.Account.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pickle_session :
     Types.Session.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val unpickle_account :
     Types.Account.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val unpickle_session :
     Types.Session.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val create_account_random_length : Types.Account.t Ctypes_static.ptr -> Unsigned.size_t
@@ -426,7 +464,9 @@ module Funcs : sig
   (**   *)
   val create_account :
     Types.Account.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val account_identity_keys_length : Types.Account.t Ctypes_static.ptr -> Unsigned.size_t
@@ -434,7 +474,9 @@ module Funcs : sig
   (**   *)
   val account_identity_keys :
     Types.Account.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val account_signature_length :
@@ -445,7 +487,9 @@ module Funcs : sig
     Types.Account.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val account_one_time_keys_length :
@@ -454,7 +498,9 @@ module Funcs : sig
   (**   *)
   val account_one_time_keys :
     Types.Account.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val account_mark_keys_as_published :
@@ -472,7 +518,9 @@ module Funcs : sig
   val account_generate_one_time_keys :
     Types.Account.t Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val account_generate_fallback_key_random_length :
@@ -490,7 +538,9 @@ module Funcs : sig
   (**   *)
   val account_fallback_key :
     Types.Account.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val create_outbound_session_random_length :
@@ -504,13 +554,17 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val create_inbound_session :
     Types.Session.t Ctypes_static.ptr ->
     Types.Account.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val create_inbound_session_from :
@@ -518,7 +572,9 @@ module Funcs : sig
     Types.Account.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val session_id_length : Types.Session.t Ctypes_static.ptr -> Unsigned.size_t
@@ -526,7 +582,9 @@ module Funcs : sig
   (**   *)
   val session_id :
     Types.Session.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val session_has_received_message :
@@ -535,24 +593,31 @@ module Funcs : sig
   (**   *)
   val session_describe :
     Types.Session.t Ctypes_static.ptr ->
-    char Ctypes_static.ptr -> Unsigned.size_t -> unit
+    char Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    unit
 
   (**   *)
   val matches_inbound_session :
     Types.Session.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val matches_inbound_session_from :
     Types.Session.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val remove_one_time_keys :
     Types.Account.t Ctypes_static.ptr ->
-    Types.Session.t Ctypes_static.ptr -> Unsigned.size_t
+    Types.Session.t Ctypes_static.ptr ->
+    Unsigned.size_t
 
   (**   *)
   val encrypt_message_type : Types.Session.t Ctypes_static.ptr -> Unsigned.size_t
@@ -571,13 +636,17 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val decrypt_max_plaintext_length :
     Types.Session.t Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val decrypt :
@@ -585,7 +654,9 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val sha256_length : Types.Utility.t Ctypes_static.ptr -> Unsigned.size_t
@@ -595,7 +666,9 @@ module Funcs : sig
     Types.Utility.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val ed25519_verify :
@@ -604,7 +677,9 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_encryption_size : unit -> Unsigned.size_t
@@ -622,7 +697,9 @@ module Funcs : sig
   (**   *)
   val pk_encryption_set_recipient_key :
     Types.PkEncryption.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_ciphertext_length :
@@ -648,7 +725,9 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_decryption_size : unit -> Unsigned.size_t
@@ -674,7 +753,9 @@ module Funcs : sig
     Types.PkDecryption.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pickle_pk_decryption_length :
@@ -685,7 +766,9 @@ module Funcs : sig
     Types.PkDecryption.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val unpickle_pk_decryption :
@@ -694,7 +777,9 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_max_plaintext_length :
@@ -709,12 +794,16 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_get_private_key :
     Types.PkDecryption.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_signing_size : unit -> Unsigned.size_t
@@ -734,7 +823,9 @@ module Funcs : sig
     Types.PkSigning.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val pk_signing_seed_length : unit -> Unsigned.size_t
@@ -750,7 +841,9 @@ module Funcs : sig
     Types.PkSigning.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val sas_last_error : Types.SAS.t Ctypes_static.ptr -> char Ctypes_static.ptr
@@ -770,7 +863,9 @@ module Funcs : sig
   (**   *)
   val create_sas :
     Types.SAS.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val sas_pubkey_length : Types.SAS.t Ctypes_static.ptr -> Unsigned.size_t
@@ -778,12 +873,16 @@ module Funcs : sig
   (**   *)
   val sas_get_pubkey :
     Types.SAS.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val sas_set_their_key :
     Types.SAS.t Ctypes_static.ptr ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val sas_is_their_key_set : Types.SAS.t Ctypes_static.ptr -> int
@@ -793,7 +892,9 @@ module Funcs : sig
     Types.SAS.t Ctypes_static.ptr ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 
   (**   *)
   val sas_mac_length : Types.SAS.t Ctypes_static.ptr -> Unsigned.size_t
@@ -805,5 +906,7 @@ module Funcs : sig
     Unsigned.size_t ->
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
-    unit Ctypes_static.ptr -> Unsigned.size_t -> Unsigned.size_t
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 end
