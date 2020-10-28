@@ -1,60 +1,8 @@
-module ErrorCode = struct
-  type t =
-    | Success
-    | NotEnoughRandom
-    | OutputBufferTooSmall
-    | BadMessageVersion
-    | BadMessageFormat
-    | BadMessageMac
-    | BadMessageKeyId
-    | InvalidBase64
-    | BadAccountKey
-    | UnknownPickleVersion
-    | CorruptedPickle
-    | BadSessionKey
-    | UnknownMessageIndex
-    | BadLegacyAccountPickle
-    | BadSignature
-    | InputBufferTooSmall
-    | SasTheirKeyNotSet
-
-  let to_string = function
-    | Success                -> "OLM_SUCCESS"
-    | NotEnoughRandom        -> "OLM_NOT_ENOUGH_RANDOM"
-    | OutputBufferTooSmall   -> "OLM_OUTPUT_BUFFER_TOO_SMALL"
-    | BadMessageVersion      -> "OLM_BAD_MESSAGE_VERSION"
-    | BadMessageFormat       -> "OLM_BAD_MESSAGE_FORMAT"
-    | BadMessageMac          -> "OLM_BAD_MESSAGE_MAC"
-    | BadMessageKeyId        -> "OLM_BAD_MESSAGE_KEY_ID"
-    | InvalidBase64          -> "OLM_INVALID_BASE64"
-    | BadAccountKey          -> "OLM_BAD_ACCOUNT_KEY"
-    | UnknownPickleVersion   -> "OLM_UNKNOWN_PICKLE_VERSION"
-    | CorruptedPickle        -> "OLM_CORRUPTED_PICKLE"
-    | BadSessionKey          -> "OLM_BAD_SESSION_KEY"
-    | UnknownMessageIndex    -> "OLM_UNKNOWN_MESSAGE_INDEX"
-    | BadLegacyAccountPickle -> "OLM_BAD_LEGACY_ACCOUNT_PICKLE"
-    | BadSignature           -> "OLM_BAD_SIGNATURE"
-    | InputBufferTooSmall    -> "OLM_INPUT_BUFFER_TOO_SMALL"
-    | SasTheirKeyNotSet      -> "OLM_SAS_THEIR_KEY_NOT_SET"
-end
-
 module Descriptions (F : Cstubs.Types.TYPE) = struct
   open Ctypes
   open F
 
   (* crypto.h constants *)
-  (* NOTE: Looks like it is actually not possible to use these const values here
-   * so I'll have to just define the values myself. *)
-  (* let sha256_output_length            = constant "SHA256_OUTPUT_LENGTH"            int
-   * let curve25519_key_length           = constant "CURVE25519_KEY_LENGTH"           int
-   * let curve25519_shared_secret_length = constant "CURVE25519_SHARED_SECRET_LENGTH" int
-   * let curve25519_random_length        = constant "CURVE25519_RANDOM_LENGTH"        int
-   * let ed25519_public_key_length       = constant "ED25519_PUBLIC_KEY_LENGTH"       int
-   * let ed25519_private_key_length      = constant "ED25519_PRIVATE_KEY_LENGTH"      int
-   * let ed25519_random_length           = constant "ED25519_RANDOM_LENGTH"           int
-   * let ed25519_signature_length        = constant "ED25519_SIGNATURE_LENGTH"        int
-   * let aes256_key_length               = constant "AES256_KEY_LENGTH"               int
-   * let aes256_iv_length                = constant "AES256_IV_LENGTH"                int *)
   let sha256_output_length            = 32
   let curve25519_key_length           = 32
   let curve25519_shared_secret_length = 32
@@ -67,13 +15,9 @@ module Descriptions (F : Cstubs.Types.TYPE) = struct
   let aes256_iv_length                = 16
 
   (* megolm.h constants *)
-  (* let megolm_ratchet_part_length = constant "MEGOLM_RATCHET_PART_LENGTH" int
-   * let megolm_ratchet_parts       = constant "MEGOLM_RATCHET_PARTS"       int
-   * let megolm_ratchet_length      = constant "MEGOLM_RATCHET_LENGTH"      int *)
   let megolm_ratchet_part_length = 32
   let megolm_ratchet_parts       = 4
   let megolm_ratchet_length      = megolm_ratchet_part_length * megolm_ratchet_parts
-
 
   module ErrorCode = struct
     let olm_success                   = constant "OLM_SUCCESS"                   int64_t
@@ -94,27 +38,64 @@ module Descriptions (F : Cstubs.Types.TYPE) = struct
     let olm_input_buffer_too_small    = constant "OLM_INPUT_BUFFER_TOO_SMALL"    int64_t
     let olm_sas_their_key_not_set     = constant "OLM_SAS_THEIR_KEY_NOT_SET"     int64_t
 
+    type t =
+      | Success
+      | NotEnoughRandom
+      | OutputBufferTooSmall
+      | BadMessageVersion
+      | BadMessageFormat
+      | BadMessageMac
+      | BadMessageKeyId
+      | InvalidBase64
+      | BadAccountKey
+      | UnknownPickleVersion
+      | CorruptedPickle
+      | BadSessionKey
+      | UnknownMessageIndex
+      | BadLegacyAccountPickle
+      | BadSignature
+      | InputBufferTooSmall
+      | SasTheirKeyNotSet
+
     let t = enum "OlmErrorCode"
-        ErrorCode.
-          [ Success               , olm_success
-          ; NotEnoughRandom       , olm_not_enough_random
-          ; OutputBufferTooSmall  , olm_output_buffer_too_small
-          ; BadMessageVersion     , olm_bad_message_version
-          ; BadMessageFormat      , olm_bad_message_format
-          ; BadMessageMac         , olm_bad_message_mac
-          ; BadMessageKeyId       , olm_bad_message_key_id
-          ; InvalidBase64         , olm_invalid_base64
-          ; BadAccountKey         , olm_bad_account_key
-          ; UnknownPickleVersion  , olm_unknown_pickle_version
-          ; CorruptedPickle       , olm_corrupted_pickle
-          ; BadSessionKey         , olm_bad_session_key
-          ; UnknownMessageIndex   , olm_unknown_message_index
-          ; BadLegacyAccountPickle, olm_bad_legacy_account_pickle
-          ; BadSignature          , olm_bad_signature
-          ; InputBufferTooSmall   , olm_input_buffer_too_small
-          ; SasTheirKeyNotSet     , olm_sas_their_key_not_set
-          ]
+        [ Success               , olm_success
+        ; NotEnoughRandom       , olm_not_enough_random
+        ; OutputBufferTooSmall  , olm_output_buffer_too_small
+        ; BadMessageVersion     , olm_bad_message_version
+        ; BadMessageFormat      , olm_bad_message_format
+        ; BadMessageMac         , olm_bad_message_mac
+        ; BadMessageKeyId       , olm_bad_message_key_id
+        ; InvalidBase64         , olm_invalid_base64
+        ; BadAccountKey         , olm_bad_account_key
+        ; UnknownPickleVersion  , olm_unknown_pickle_version
+        ; CorruptedPickle       , olm_corrupted_pickle
+        ; BadSessionKey         , olm_bad_session_key
+        ; UnknownMessageIndex   , olm_unknown_message_index
+        ; BadLegacyAccountPickle, olm_bad_legacy_account_pickle
+        ; BadSignature          , olm_bad_signature
+        ; InputBufferTooSmall   , olm_input_buffer_too_small
+        ; SasTheirKeyNotSet     , olm_sas_their_key_not_set
+        ]
         ~unexpected:(fun _ -> assert false)
+
+    let to_string = function
+      | Success                -> "SUCCESS"
+      | NotEnoughRandom        -> "NOT_ENOUGH_RANDOM"
+      | OutputBufferTooSmall   -> "OUTPUT_BUFFER_TOO_SMALL"
+      | BadMessageVersion      -> "BAD_MESSAGE_VERSION"
+      | BadMessageFormat       -> "BAD_MESSAGE_FORMAT"
+      | BadMessageMac          -> "BAD_MESSAGE_MAC"
+      | BadMessageKeyId        -> "BAD_MESSAGE_KEY_ID"
+      | InvalidBase64          -> "INVALID_BASE64"
+      | BadAccountKey          -> "BAD_ACCOUNT_KEY"
+      | UnknownPickleVersion   -> "UNKNOWN_PICKLE_VERSION"
+      | CorruptedPickle        -> "CORRUPTED_PICKLE"
+      | BadSessionKey          -> "BAD_SESSION_KEY"
+      | UnknownMessageIndex    -> "UNKNOWN_MESSAGE_INDEX"
+      | BadLegacyAccountPickle -> "BAD_LEGACY_ACCOUNT_PICKLE"
+      | BadSignature           -> "BAD_SIGNATURE"
+      | InputBufferTooSmall    -> "OLM_INPUT_BUFFER_TOO_SMALL"
+      | SasTheirKeyNotSet      -> "OLM_SAS_THEIR_KEY_NOT_SET"
   end
 
   module Aes256Key = struct
