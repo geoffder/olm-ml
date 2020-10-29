@@ -75,6 +75,7 @@ val create : unit -> (t, [> OlmError.t ]) result
 val pickle : ?pass:string -> t -> (string, [> OlmError.t ]) result
 
 (** [from_pickle ?pass pickle]
+
     Loads an account from a pickled base64-encoded string [pickle] and returns a [t],
     decrypted with the optionall supplied passphrase [?pass]. If the passphrase
     doesn't match the one used to encrypt the account then the error will be

@@ -1,12 +1,19 @@
+(** This module contains bindings to the PK part of the Olm library.
+    It contains the modules Decryption and Encryption that are used to establish
+    an encrypted communication channel using public key encryption, as well as
+    the module Signing that is used to sign a message. *)
+
 open Core
 
 module Message : sig
   type t = { ephemeral_key : string
-           ; mac : string
-           ; ciphertext : string
+           ; mac           : string
+           ; ciphertext    : string
            }
 
-  (** [create ephemeral_key mac ciphertext] *)
+  (** [create ephemeral_key mac ciphertext]
+
+      Create a new PK encrypted message, simply filling in the record [t]. *)
   val create : string -> string -> string -> t
 end
 
@@ -15,19 +22,31 @@ module Encryption : sig
            ; pk_enc : C.Types.PkEncryption.t Ctypes_static.ptr
            }
 
-  (** [clear pk_enc] *)
+  (** [clear pk_enc]
+
+      Clear memory backing the given [pk_enc] pointer. *)
   val clear : C.Types.PkEncryption.t Ctypes_static.ptr -> (int, [> `OlmError ]) result
 
-  (** [check_error t ret] *)
+  (** [check_error t ret]
+
+      Check whether return code [ret] is equal to `olm_error()` ( -1 ), returning
+      the return value as an int if not, and the `last_error` from the pk encryption
+      object [t] if so. *)
   val check_error : t -> Unsigned.size_t -> (int, [> OlmError.t ]) result
 
-  (** [alloc ()] *)
+  (** [alloc ()]
+
+      Allocate an [C.Types.Pk.Encryption.t] and return the pointers in a [t]. *)
   val alloc : unit -> t
 
-  (** [create recipient_key] *)
+  (** [create recipient_key]
+
+      Create a new PK encryption object with targeted at the supplied [recipient_key]. *)
   val create : string -> (t, [> OlmError.t | `ValueError of string ]) result
 
-  (** [encrypt t plaintext] *)
+  (** [encrypt t plaintext]
+
+      Encrypts [plaintext] with [t], returning a [Message.t]. *)
   val encrypt : t -> string -> (Message.t, [> OlmError.t ]) result
 end
 
@@ -37,29 +56,54 @@ module Decryption : sig
            ; pubkey : string
            }
 
-  (** [clear pk_dec] *)
+  (** [clear pk_dec]
+
+      Clear memory backing the given [pk_dec] pointer. *)
   val clear : C.Types.PkDecryption.t Ctypes_static.ptr -> (int, [> `OlmError ]) result
 
-  (** [check_error t ret] *)
+  (** [check_error t ret]
+
+      Check whether return code [ret] is equal to `olm_error()` ( -1 ), returning
+      the return value as an int if not, and the `last_error` from the pk decryption
+      object [t] if so. *)
   val check_error : t -> Unsigned.size_t -> (int, [> OlmError.t ]) result
 
-  (** [alloc ()] *)
+  (** [alloc ()]
+
+      Allocate an [C.Types.Pk.Decryption.t] and return the pointers in a [t]. *)
   val alloc : unit -> t
 
-  (** [create ()] *)
+  (** [create ()]
+
+      Create a new PK decryption object, returning its pointers and public key
+      in a [t] *)
   val create : unit -> (t, [> OlmError.t ]) result
 
-  (** [pickle ?pass t] *)
+  (** [pickle ?pass t]
+
+      Stores a PK decryption object [t] as a base64 string. Encrypts the account using
+      the optionally supplied passphrase [?pass]. Returns a base64 encoded string of
+      the pickled account on success. *)
   val pickle : ?pass:string -> t -> (string, [> OlmError.t ]) result
 
-  (** [from_pickle ?pass pickle] *)
+  (** [from_pickle ?pass pickle]
+
+      Loads PK decryption object from a pickled base64-encoded string [pickle] and
+      returns a [t], decrypted with the optionall supplied passphrase [?pass]. If
+      the passphrase doesn't match the one used to encrypt the account then the
+      error will be [`BadAccountKey]. If the base64 couldn't be decoded then the
+      error will be [`InvalidBase64]. *)
   val from_pickle :
     ?pass:string -> string -> (t, [> OlmError.t | `ValueError of string ]) result
 
-  (** [decrypt t msg] *)
+  (** [decrypt t msg]
+
+      Decrypts a previously encrypted pk [msg] into plaintext with [t]. *)
   val decrypt : t -> Message.t -> (string, [> OlmError.t ]) result
 
-  (** [private_key t] *)
+  (** [private_key t]
+
+      Get the private key from [t]. *)
   val private_key : t -> (string, [> OlmError.t ]) result
 end
 
@@ -69,21 +113,37 @@ module Signing : sig
            ; pubkey : string
            }
 
-  (** [clear pk_sgn] *)
+  (** [clear pk_sgn]
+
+      Clear memory backing the given [pk_sgn] pointer. *)
   val clear : C.Types.PkSigning.t Ctypes_static.ptr -> (int, [> `OlmError ]) result
 
-  (** [check_error t ret] *)
+  (** [check_error t ret]
+
+      Check whether return code [ret] is equal to `olm_error()` ( -1 ), returning
+      the return value as an int if not, and the `last_error` from the pk signing
+      object [t] if so. *)
   val check_error : t -> Unsigned.size_t -> (int, [> OlmError.t ]) result
 
-  (** [alloc ()] *)
+  (** [alloc ()]
+
+      Allocate an [C.Types.Pk.Signing.t] and return the pointers in a [t]. *)
   val alloc : unit -> t
 
-  (** [create seed] *)
+  (** [create seed]
+
+      Create a new PK signing object with the provided [seed] which will used as
+      the private key for signing. Provided seed must have the same length as the
+      seeds generated by [generate_seed ()]. *)
   val create : string -> (t, [> OlmError.t | `ValueError of string ]) result
 
-  (** [generate_seed ()] *)
+  (** [generate_seed ()]
+
+      Generate and random seed. *)
   val generate_seed : unit -> string
 
-  (** [sign t msg_str] *)
+  (** [sign t msg]
+
+      Signs the message [msg] with the pk signing [t], returning the signature. *)
   val sign : t -> string -> (string, [> OlmError.t ]) result
 end

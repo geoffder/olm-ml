@@ -188,8 +188,8 @@ module Signing = struct
 
   let generate_seed () = Cryptokit.Random.(string secure_rng) signing_seed_size
 
-  let sign t msg_str =
-    let msg_buf, msg_len = string_to_sized_buff Ctypes.void msg_str in
+  let sign t msg =
+    let msg_buf, msg_len = string_to_sized_buff Ctypes.void msg in
     let sig_buf          = allocate_bytes_void signature_size in
     C.Funcs.pk_sign t.pk_sgn msg_buf msg_len sig_buf signature_size_t
     |> check_error t >>| fun _ ->
