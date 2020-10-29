@@ -620,10 +620,6 @@ module Descriptions (F : Ctypes.FOREIGN) = struct
     foreign "olm_pk_private_key_length"
       (void @-> returning size_t)
 
-  let pk_generate_key_random_length =
-    foreign "olm_pk_generate_key_random_length"
-      (void @-> returning size_t)
-
   let pk_key_from_private =
     foreign "olm_pk_key_from_private"
       (ptr PkDecryption.t    (* decryption *)
