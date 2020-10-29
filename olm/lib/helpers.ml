@@ -54,6 +54,9 @@ let string_of_ptr_clr ctyp ~length p =
 let string_to_ptr ctyp s =
   Ctypes.(CArray.of_string s |> CArray.start |> coerce (ptr char) (ptr ctyp))
 
+let string_to_sized_buff ctyp s =
+  string_to_ptr ctyp s, size_of_int (String.length s)
+
 let random_chars len =
   let open Ctypes in
   Cryptokit.Random.(string secure_rng) len

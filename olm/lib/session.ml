@@ -81,12 +81,10 @@ let create_inbound ?identity_key (acc : Account.t) = function
 
 let create_outbound (acc: Account.t) identity_key one_time_key =
   non_empty_string ~label:"Identity key" identity_key >>|
-  string_to_ptr Ctypes.void >>= fun id_buf ->
+  string_to_sized_buff Ctypes.void >>= fun (id_buf, id_len) ->
   non_empty_string ~label:"One time key" one_time_key >>|
-  string_to_ptr Ctypes.void >>= fun one_buf ->
+  string_to_sized_buff Ctypes.void >>= fun (one_buf, one_len) ->
   let t          = alloc () in
-  let id_len     = String.length identity_key |> size_of_int in
-  let one_len    = String.length one_time_key |> size_of_int in
   let random_len = C.Funcs.create_outbound_session_random_length t.ses in
   let random_buf = random_void (size_to_int random_len) in
   C.Funcs.create_outbound_session
@@ -98,31 +96,28 @@ let create_outbound (acc: Account.t) identity_key one_time_key =
   t
 
 let pickle ?(pass="") t =
-  let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass |> size_of_int in
-  let pickle_len = C.Funcs.pickle_session_length t.ses in
-  let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
+  let key_buf, key_len = string_to_sized_buff Ctypes.void pass in
+  let pickle_len       = C.Funcs.pickle_session_length t.ses in
+  let pickle_buf       = allocate_bytes_void (size_to_int pickle_len) in
   let ret = C.Funcs.pickle_session t.ses key_buf key_len pickle_buf pickle_len in
   let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   string_of_ptr_clr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
 let from_pickle ?(pass="") pickle =
-  non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
-  let pickle_len = String.length pickle |> size_of_int in
-  let key_buf    = string_to_ptr Ctypes.void pass in
-  let key_len    = String.length pass |> size_of_int in
-  let t          = alloc () in
+  non_empty_string ~label:"Pickle" pickle >>|
+  string_to_sized_buff Ctypes.void >>= fun (pickle_buf, pickle_len) ->
+  let key_buf, key_len = string_to_sized_buff Ctypes.void pass in
+  let t   = alloc () in
   let ret = C.Funcs.unpickle_session t.ses key_buf key_len pickle_buf pickle_len in
   let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
   check_error t ret >>| fun _ ->
   t
 
 let encrypt t plaintext =
-  let txt_buf    = string_to_ptr Ctypes.void plaintext in
-  let txt_len    = String.length plaintext |> size_of_int in
-  let random_len = C.Funcs.encrypt_random_length t.ses in
-  let random_buf = random_void (size_to_int random_len) in
+  let txt_buf, txt_len = string_to_sized_buff Ctypes.void plaintext in
+  let random_len       = C.Funcs.encrypt_random_length t.ses in
+  let random_buf       = random_void (size_to_int random_len) in
   C.Funcs.encrypt_message_type t.ses |> check_error t >>= fun msg_type ->
   let cipher_len = C.Funcs.encrypt_message_length t.ses txt_len in
   let cipher_buf = allocate_bytes_void (size_to_int cipher_len) in
@@ -159,8 +154,7 @@ let matches ?identity_key t = function
     begin
       match identity_key with
       | Some key when String.length key > 0 ->
-        let key_buf = string_to_ptr Ctypes.void key in
-        let key_len = String.length key |> size_of_int in
+        let key_buf, key_len = string_to_sized_buff Ctypes.void key in
         C.Funcs.matches_inbound_session_from t.ses key_buf key_len (cipher_buf ()) cipher_len
       | _ -> C.Funcs.matches_inbound_session t.ses (cipher_buf ()) cipher_len
     end |> check_error t >>| fun matched ->

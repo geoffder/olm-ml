@@ -44,17 +44,15 @@ module Encryption = struct
 
   let create recipient_key =
     non_empty_string ~label:"Key" recipient_key >>|
-    string_to_ptr Ctypes.void >>= fun key_buf ->
-    let key_len = String.length recipient_key |> size_of_int in
-    let t       = alloc () in
+    string_to_sized_buff Ctypes.void >>= fun (key_buf, key_len) ->
+    let t   = alloc () in
     let ret = C.Funcs.pk_encryption_set_recipient_key t.pk_enc key_buf key_len in
     let ()  = zero_bytes Ctypes.void ~length:(size_to_int key_len) key_buf in
     check_error t ret >>| fun _ ->
     t
 
   let encrypt t plaintext =
-    let txt_buf    = string_to_ptr Ctypes.void plaintext in
-    let txt_len    = String.length plaintext |> size_of_int in
+    let txt_buf, txt_len = string_to_sized_buff Ctypes.void plaintext in
     let random_len = C.Funcs.pk_encrypt_random_length t.pk_enc in
     let random_buf = random_void (size_to_int random_len) in
     let cipher_len = C.Funcs.pk_ciphertext_length t.pk_enc txt_len in
@@ -110,24 +108,23 @@ module Decryption = struct
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
 
   let pickle ?(pass="") t =
-    let pass_buf   = string_to_ptr Ctypes.void pass in
-    let pass_len   = String.length pass |> size_of_int in
-    let pickle_len = C.Funcs.pickle_pk_decryption_length t.pk_dec in
-    let pickle_buf = allocate_bytes_void (size_to_int pickle_len) in
+    let pass_buf, pass_len = string_to_sized_buff Ctypes.void pass in
+    let pickle_len         = C.Funcs.pickle_pk_decryption_length t.pk_dec in
+    let pickle_buf         = allocate_bytes_void (size_to_int pickle_len) in
     let ret = C.Funcs.pickle_pk_decryption t.pk_dec pass_buf pass_len pickle_buf pickle_len in
     let ()  = zero_bytes Ctypes.void ~length:(size_to_int pass_len) pass_buf in
     check_error t ret >>| fun _ ->
     string_of_ptr Ctypes.void ~length:(size_to_int pickle_len) pickle_buf
 
   let from_pickle ?(pass="") pickle =
-    non_empty_string ~label:"Pickle" pickle >>| string_to_ptr Ctypes.void >>= fun pickle_buf ->
-    let pass_buf = string_to_ptr Ctypes.void pass in
-    let pass_len = String.length pass |> size_of_int in
-    let key_buf  = allocate_bytes_void public_key_size in
-    let t        = alloc () in
+    non_empty_string ~label:"Pickle" pickle >>|
+    string_to_sized_buff Ctypes.void >>= fun (pickle_buf, pickle_len) ->
+    let pass_buf, pass_len = string_to_sized_buff Ctypes.void pass in
+    let key_buf            = allocate_bytes_void public_key_size in
+    let t                  = alloc () in
     let ret = C.Funcs.unpickle_pk_decryption t.pk_dec
         pass_buf   pass_len
-        pickle_buf (String.length pickle |> size_of_int)
+        pickle_buf pickle_len
         key_buf    public_key_size_t
     in
     let () = zero_bytes Ctypes.void ~length:(size_to_int pass_len) pass_buf in
@@ -135,15 +132,14 @@ module Decryption = struct
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
 
   let decrypt t (msg : Message.t) =
-    let key_buf     = string_to_ptr Ctypes.void msg.ephemeral_key in
-    let mac_buf     = string_to_ptr Ctypes.void msg.mac in
-    let cipher_buf  = string_to_ptr Ctypes.void msg.ciphertext in
-    let cipher_len  = String.length msg.ciphertext |> size_of_int in
-    let max_txt_len = C.Funcs.pk_max_plaintext_length t.pk_dec cipher_len in
-    let txt_buf     = allocate_bytes_void (size_to_int max_txt_len) in
+    let key_buf, key_len       = string_to_sized_buff Ctypes.void msg.ephemeral_key in
+    let mac_buf, mac_len       = string_to_sized_buff Ctypes.void msg.mac in
+    let cipher_buf, cipher_len = string_to_sized_buff Ctypes.void msg.ciphertext in
+    let max_txt_len            = C.Funcs.pk_max_plaintext_length t.pk_dec cipher_len in
+    let txt_buf                = allocate_bytes_void (size_to_int max_txt_len) in
     C.Funcs.pk_decrypt t.pk_dec
-      key_buf    (String.length msg.ephemeral_key |> size_of_int)
-      mac_buf    (String.length msg.mac |> size_of_int)
+      key_buf    key_len
+      mac_buf    mac_len
       cipher_buf cipher_len
       txt_buf    max_txt_len
     |> check_error t >>| fun txt_len ->
@@ -180,11 +176,11 @@ module Signing = struct
     { buf; pk_sgn = C.Funcs.pk_signing (Ctypes.to_voidp buf); pubkey = "" }
 
   let create seed =
-    non_empty_string ~label:"Seed" seed >>| string_to_ptr Ctypes.void >>= fun seed_buf ->
-    let seed_len = String.length seed |> size_of_int in
-    let key_len  = public_key_size_t in
-    let key_buf  = allocate_bytes_void signing_public_key_size in
-    let t        = alloc () in
+    non_empty_string ~label:"Seed" seed >>|
+    string_to_sized_buff Ctypes.void >>= fun (seed_buf, seed_len) ->
+    let key_len = public_key_size_t in
+    let key_buf = allocate_bytes_void signing_public_key_size in
+    let t       = alloc () in
     let ret = C.Funcs.pk_signing_key_from_seed t.pk_sgn key_buf key_len seed_buf seed_len in
     let ()  = zero_bytes Ctypes.void ~length:(size_to_int seed_len) seed_buf in
     check_error t ret >>| fun _ ->
@@ -193,9 +189,8 @@ module Signing = struct
   let generate_seed () = Cryptokit.Random.(string secure_rng) signing_seed_size
 
   let sign t msg_str =
-    let msg_buf = string_to_ptr Ctypes.void msg_str in
-    let msg_len = String.length msg_str |> size_of_int in
-    let sig_buf = allocate_bytes_void signature_size in
+    let msg_buf, msg_len = string_to_sized_buff Ctypes.void msg_str in
+    let sig_buf          = allocate_bytes_void signature_size in
     C.Funcs.pk_sign t.pk_sgn msg_buf msg_len sig_buf signature_size_t
     |> check_error t >>| fun _ ->
     string_of_ptr Ctypes.void ~length:signature_size sig_buf

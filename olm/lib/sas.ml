@@ -18,8 +18,7 @@ let check_error t ret =
   end
 
 let set_their_pubkey t key =
-  let key_buf = string_to_ptr Ctypes.void key in
-  let key_len = String.length key |> size_of_int in
+  let key_buf, key_len = string_to_sized_buff Ctypes.void key in
   C.Funcs.sas_set_their_key t.sas key_buf key_len
   |> check_error t
 
@@ -48,19 +47,16 @@ let other_key_set t = C.Funcs.sas_is_their_key_set t.sas > 0
 
 let generate_bytes t extra_info length =
   if length > 0 then
-    let info_buf = string_to_ptr Ctypes.void extra_info in
-    let info_len = String.length extra_info |> size_of_int in
-    let out_buf  = allocate_bytes_void length in
+    let info_buf, info_len = string_to_sized_buff Ctypes.void extra_info in
+    let out_buf            = allocate_bytes_void length in
     C.Funcs.sas_generate_bytes t.sas info_buf info_len out_buf (size_of_int length)
     |> check_error t >>| fun _ ->
     string_of_ptr Ctypes.void ~length out_buf
   else Result.fail (`ValueError "The length needs to be a positive integer value.")
 
 let calculate_mac t msg extra_info =
-  let msg_buf  = string_to_ptr Ctypes.void msg in
-  let msg_len  = String.length msg |> size_of_int in
-  let info_buf = string_to_ptr Ctypes.void extra_info in
-  let info_len = String.length extra_info |> size_of_int in
+  let msg_buf, msg_len   = string_to_sized_buff Ctypes.void msg in
+  let info_buf, info_len = string_to_sized_buff Ctypes.void extra_info in
   let mac_len  = C.Funcs.sas_mac_length t.sas in
   let mac_buf  = allocate_bytes_void (size_to_int mac_len) in
   C.Funcs.sas_calculate_mac t.sas msg_buf msg_len info_buf info_len mac_buf mac_len
