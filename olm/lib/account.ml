@@ -133,7 +133,7 @@ let generate_one_time_keys t n =
   let n_sz = size_of_int n in
   let random_len = C.Funcs.account_generate_one_time_keys_random_length t.acc n_sz in
   let random_buf = random_void (size_to_int random_len) in
-  C.Funcs.account_generate_one_time_keys t.acc n random_buf random_len
+  C.Funcs.account_generate_one_time_keys t.acc n_sz random_buf random_len
   |> check_error t
 
 let one_time_keys t =

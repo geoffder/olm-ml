@@ -36,7 +36,7 @@ end = struct
       match message_type_int with
       | 0 -> Result.return (PreKey txt)
       | 1 -> Result.return (Message txt)
-      | _ -> Result.fail (`ValueError "Invalid message type (not size_t = 0 | 1).")
+      | _ -> Result.fail (`ValueError "Invalid message type (not 0 or 1).")
     else Result.fail (`ValueError "Ciphertext can't be empty.")
 end
 
@@ -115,10 +115,10 @@ let from_pickle ?(pass="") pickle =
   t
 
 let encrypt t plaintext =
-  let txt_buf, txt_len = string_to_sized_buff Ctypes.void plaintext in
-  let random_len       = C.Funcs.encrypt_random_length t.ses in
-  let random_buf       = random_void (size_to_int random_len) in
   C.Funcs.encrypt_message_type t.ses |> check_error t >>= fun msg_type ->
+  let txt_buf, txt_len = string_to_sized_buff Ctypes.void plaintext in
+  let random_len = C.Funcs.encrypt_random_length t.ses in
+  let random_buf = random_void (size_to_int random_len) in
   let cipher_len = C.Funcs.encrypt_message_length t.ses txt_len in
   let cipher_buf = allocate_bytes_void (size_to_int cipher_len) in
   let ret = C.Funcs.encrypt t.ses txt_buf txt_len random_buf random_len cipher_buf cipher_len in

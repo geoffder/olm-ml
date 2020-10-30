@@ -81,15 +81,15 @@ module Decryption : sig
 
   (** [pickle ?pass t]
 
-      Stores a PK decryption object [t] as a base64 string. Encrypts the account using
-      the optionally supplied passphrase [?pass]. Returns a base64 encoded string of
-      the pickled account on success. *)
+      Stores a PK decryption object [t] as a base64 string, encrypting it using
+      the optionally supplied passphrase [pass]. Returns a base64 encoded string of
+      the pickled pk decryption on success. *)
   val pickle : ?pass:string -> t -> (string, [> OlmError.t ]) result
 
   (** [from_pickle ?pass pickle]
 
       Loads PK decryption object from a pickled base64-encoded string [pickle] and
-      returns a [t], decrypted with the optionall supplied passphrase [?pass]. If
+      returns a [t], decrypted with the optionally supplied passphrase [pass]. If
       the passphrase doesn't match the one used to encrypt the account then the
       error will be [`BadAccountKey]. If the base64 couldn't be decoded then the
       error will be [`InvalidBase64]. *)
