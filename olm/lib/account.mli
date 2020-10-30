@@ -1,7 +1,7 @@
 open Core
 
 module IdentityKeys : sig
-  type t = private { curve25519 : string; ed25519 : string; }
+  type t = private { curve25519 : string; ed25519 : string }
 
   (** [equal a b] *)
   val equal     : t -> t -> bool

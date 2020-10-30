@@ -3,9 +3,7 @@ open Helpers
 open Helpers.ResultInfix
 
 module IdentityKeys : sig
-  type t = private { curve25519 : string
-                   ; ed25519    : string
-                   }
+  type t = private { curve25519 : string; ed25519 : string }
   val equal     : t -> t -> bool
   val of_yojson : Yojson.Safe.t -> (t, [> `YojsonError of string ]) result
   val to_yojson : t -> Yojson.Safe.t
