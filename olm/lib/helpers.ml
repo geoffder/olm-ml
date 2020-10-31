@@ -57,16 +57,6 @@ let string_to_ptr ctyp s =
 let string_to_sized_buff ctyp s =
   string_to_ptr ctyp s, size_of_int (String.length s)
 
-let random_chars len =
-  let open Ctypes in
-  Cryptokit.Random.(string secure_rng) len
-  |> CArray.of_string
-  |> CArray.start
-
-let random_void len = random_chars len |> Ctypes.to_voidp
-
-let random_uint8 len = random_chars len |> Ctypes.(coerce (ptr char) (ptr uint8_t))
-
 let non_empty_string ?(label="String") str =
   if String.length str > 0
   then Result.return str
