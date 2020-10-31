@@ -61,5 +61,15 @@ let of_string = function
   | "OLM_SAS_THEIR_KEY_NOT_SET"  -> `SasTheirKeyNotSet
   | s                            -> `UnknownOlmError s
 
+let string_of_nullterm_char_ptr char_ptr =
+  let open Ctypes in
+  let rec loop acc p =
+    if is_null p || Char.equal (!@ p) '\000'
+    then List.rev acc |> String.of_char_list
+    else loop (!@ p :: acc) (p +@ 1)
+  in
+  loop [] char_ptr
+
+(* The last_error functions of all libolm objects return null-terminated strings *)
 let of_last_error char_ptr =
-  Helpers.string_of_nullterm_char_ptr char_ptr |> of_string
+  string_of_nullterm_char_ptr char_ptr |> of_string
