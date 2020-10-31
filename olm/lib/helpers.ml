@@ -26,7 +26,7 @@ let olm_error = C.Funcs.error () |> size_to_int
 
 let size_to_result size =
   match size_to_int size with
-  | e when e = olm_error -> Result.Error `OlmError
+  | e when e = olm_error -> Result.fail `OlmError
   | i                    -> Result.return i
 
 let string_of_nullterm_char_ptr char_ptr =
@@ -61,3 +61,23 @@ let non_empty_string ?(label="String") str =
   if String.length str > 0
   then Result.return str
   else Result.fail (`ValueError (label ^ " can't be empty."))
+
+module UTF8 = struct
+  let replace_err e = ignore (Uutf.encode e (`Uchar Uutf.u_rep))
+
+  let ignore_err _ = ()
+
+  let recode ?(ignore_unicode_errors=false) s =
+    let policy = if ignore_unicode_errors then ignore_err else replace_err in
+    let buf = Buffer.create (String.length s) in
+    let rec loop d e = match Uutf.decode d with
+      | `Uchar _ as u -> ignore (Uutf.encode e u); loop d e
+      | `End          -> ignore (Uutf.encode e `End); Result.return ()
+      | `Malformed _  -> policy e; loop d e
+      | `Await        -> Result.fail `UnicodeError
+    in
+    let deco = Uutf.decoder ~encoding:`UTF_8 (`String s) in
+    let enco = Uutf.encoder `UTF_8 (`Buffer buf) in
+    loop deco enco
+    |> Result.map ~f:(fun () -> Buffer.contents buf)
+end
