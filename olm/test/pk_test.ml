@@ -73,7 +73,7 @@ let%test "signature verification" =
 
 let%test "clear signing" =
   begin
-    Pk.Signing.create "foobar" >>= fun signing ->
+    Pk.Signing.create (Pk.Signing.generate_seed ()) >>= fun signing ->
     Pk.Signing.clear signing.pk_sgn
   end |> Result.is_ok
 
