@@ -30,7 +30,7 @@ let alloc () =
 let create ?other_users_pubkey () =
   let t          = alloc () in
   let random_len = C.Funcs.create_sas_random_length t.sas in
-  let random_buf = random_void (size_to_int random_len) in
+  let random_buf = Rng.void_buf (size_to_int random_len) in
   C.Funcs.create_sas t.sas random_buf random_len
   |> check_error t >>= fun r ->
   Option.value_map ~default:(Ok r) ~f:(set_their_pubkey t) other_users_pubkey

@@ -25,7 +25,7 @@ let alloc () =
 let create () =
   let t          = alloc () in
   let random_len = C.Funcs.init_outbound_group_session_random_length t.ogs in
-  let random_buf = random_uint8 (size_to_int random_len) in
+  let random_buf = Rng.uint8_buf (size_to_int random_len) in
   C.Funcs.init_outbound_group_session t.ogs random_buf random_len
   |> check_error t >>| fun _ ->
   t

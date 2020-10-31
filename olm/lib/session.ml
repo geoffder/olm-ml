@@ -86,7 +86,7 @@ let create_outbound (acc: Account.t) identity_key one_time_key =
   string_to_sized_buff Ctypes.void >>= fun (one_buf, one_len) ->
   let t          = alloc () in
   let random_len = C.Funcs.create_outbound_session_random_length t.ses in
-  let random_buf = random_void (size_to_int random_len) in
+  let random_buf = Rng.void_buf (size_to_int random_len) in
   C.Funcs.create_outbound_session
     t.ses      acc.acc
     id_buf     id_len
@@ -118,7 +118,7 @@ let encrypt t plaintext =
   C.Funcs.encrypt_message_type t.ses |> check_error t >>= fun msg_type ->
   let txt_buf, txt_len = string_to_sized_buff Ctypes.void plaintext in
   let random_len = C.Funcs.encrypt_random_length t.ses in
-  let random_buf = random_void (size_to_int random_len) in
+  let random_buf = Rng.void_buf (size_to_int random_len) in
   let cipher_len = C.Funcs.encrypt_message_length t.ses txt_len in
   let cipher_buf = allocate_bytes_void (size_to_int cipher_len) in
   let ret = C.Funcs.encrypt t.ses txt_buf txt_len random_buf random_len cipher_buf cipher_len in

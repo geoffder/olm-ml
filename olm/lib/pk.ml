@@ -54,7 +54,7 @@ module Encryption = struct
   let encrypt t plaintext =
     let txt_buf, txt_len = string_to_sized_buff Ctypes.void plaintext in
     let random_len = C.Funcs.pk_encrypt_random_length t.pk_enc in
-    let random_buf = random_void (size_to_int random_len) in
+    let random_buf = Rng.void_buf (size_to_int random_len) in
     let cipher_len = C.Funcs.pk_ciphertext_length t.pk_enc txt_len in
     let cipher_buf = allocate_bytes_void (size_to_int cipher_len) in
     let mac_len    = C.Funcs.pk_ciphertext_length t.pk_enc txt_len in
@@ -99,7 +99,7 @@ module Decryption = struct
 
   let create () =
     let t          = alloc () in
-    let random_buf = random_void private_key_size in
+    let random_buf = Rng.void_buf private_key_size in
     let random_len = private_key_size_t in
     let key_buf    = allocate_bytes_void public_key_size in
     let key_len    = public_key_size_t in
@@ -186,7 +186,7 @@ module Signing = struct
     check_error t ret >>| fun _ ->
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
 
-  let generate_seed () = Cryptokit.Random.(string secure_rng) signing_seed_size
+  let generate_seed () = Rng.string signing_seed_size
 
   let sign t msg =
     let msg_buf, msg_len = string_to_sized_buff Ctypes.void msg in
