@@ -135,18 +135,13 @@ let%test "doesn't match" =
   | Ok false -> true
   | _        -> false
 
-(* TODO: Not sure what I need to do to test invalid unicode decrypt as they
- * do in the python bindings. I also have not determined what my equivalent
- * course is when unicode handling is done in the API. This example passes,
- * which is not the same as the python test, where b"\xed" becomes u"�".
- * I'm not sure what the equivalent check for ocaml should be yet. *)
-(* let%test "unicode decrypt" =
- *   begin
- *     create_session ()                                            >>= fun (alice, bob, session) ->
- *     Session.encrypt session "\xed"                               >>= fun msg ->
- *     Account.identity_keys alice                                  >>= fun keys ->
- *     Session.create_inbound ~identity_key:keys.curve25519 bob msg >>= fun bob_session ->
- *     Session.decrypt bob_session msg
- *   end |> function
- *   | Ok "í" -> true
- *   | _      -> false *)
+let%test "invalid unicode decrypt" =
+  begin
+    create_session ()                                            >>= fun (alice, bob, session) ->
+    Session.encrypt session "\xed"                               >>= fun msg ->
+    Account.identity_keys alice                                  >>= fun keys ->
+    Session.create_inbound ~identity_key:keys.curve25519 bob msg >>= fun bob_session ->
+    Session.decrypt bob_session msg
+  end |> function
+  | Ok "�" -> true
+  | _      -> false

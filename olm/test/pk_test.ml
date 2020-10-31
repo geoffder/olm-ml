@@ -88,20 +88,13 @@ let%test "unicode decrypt" =
   | Ok "😀" -> true
   | _       -> false
 
-(* TODO: Not sure what I need to do to test invalid unicode decrypt as they
- * do in the python bindings. I also have not determined what my equivalent
- * course is when unicode handling is done in the API. This example passes,
- * which is not the same as the python test, where b"\xed" becomes u"�".
- * I'm not sure what the equivalent check for ocaml should be yet.
- * Unicode string encoding can be done with "\u{code}", but putting a unicode
- * character within is illegal. *)
-(* let%test "invalid unicode decrypt" =
- *   let unicode = "\xed" in
- *   begin
- *     Pk.Decryption.create ()           >>= fun dec ->
- *     Pk.Encryption.create dec.pubkey   >>= fun enc ->
- *     Pk.Encryption.encrypt enc unicode >>=
- *     Pk.Decryption.decrypt dec
- *   end |> function
- *   | Ok "í" -> true
- *   | _     -> false *)
+let%test "invalid unicode decrypt" =
+  let unicode = "\xed" in
+  begin
+    Pk.Decryption.create ()           >>= fun dec ->
+    Pk.Encryption.create dec.pubkey   >>= fun enc ->
+    Pk.Encryption.encrypt enc unicode >>=
+    Pk.Decryption.decrypt dec
+  end |> function
+  | Ok "�" -> true
+  | _      -> false

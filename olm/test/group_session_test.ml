@@ -151,11 +151,13 @@ let%test "inbound clear" =
     InboundGroupSession.clear inbound.igs
   end |> Result.is_ok
 
-(* TODO: Not sure what I need to do to test invalid unicode decrypt as they
- * do in the python bindings. I also have not determined what my equivalent
- * course is when unicode handling is done in the API. This example passes,
- * which is not the same as the python test, where b"\xed" becomes u"�".
- * I'm not sure what the equivalent check for ocaml should be yet.
- * Unicode string encoding can be done with "\u{code}", but putting a unicode
- * character within is illegal. *)
-(* let%test "invalid unicode decrypt" = false *)
+let%test "invalid unicode decrypt" =
+  begin
+    OutboundGroupSession.create ()               >>= fun outbound ->
+    OutboundGroupSession.session_key outbound    >>=
+    InboundGroupSession.create                   >>= fun inbound ->
+    OutboundGroupSession.encrypt outbound "\xed" >>=
+    InboundGroupSession.decrypt ~ignore_unicode_errors:true inbound
+  end |> function
+  | Ok ("", 0) -> true
+  | _          -> false
