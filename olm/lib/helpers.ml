@@ -7,19 +7,17 @@ module ResultInfix = struct
   let ( >>= ) r f = Result.bind ~f r
 end
 
-let allocate_buf ?finalise bytes : char Ctypes.ptr =
-  Ctypes.(allocate_n ?finalise char ~count:bytes)
-
-let allocate_type_void t : unit Ctypes.ptr =
-  Ctypes.(allocate_n t ~count:1 |> to_voidp)
-
-let allocate_bytes_void bytes : unit Ctypes.ptr =
-  Ctypes.(allocate_n char ~count:bytes |> to_voidp)
+let allocate_buf ?finalise n_bytes : char Ctypes.ptr =
+  Ctypes.(allocate_n ?finalise char ~count:n_bytes)
 
 let finaliser t clear char_ptr =
   Ctypes.(coerce (ptr char) (ptr t) char_ptr) |> clear |> ignore
 
+let allocate_bytes_void n_bytes : unit Ctypes.ptr =
+  Ctypes.(allocate_n char ~count:n_bytes |> to_voidp)
+
 let size_of_int = Unsigned.Size_t.of_int
+
 let size_to_int = Unsigned.Size_t.to_int
 
 let olm_error = C.Funcs.error () |> size_to_int
@@ -28,15 +26,6 @@ let size_to_result size =
   match size_to_int size with
   | e when e = olm_error -> Result.fail `OlmError
   | i                    -> Result.return i
-
-let string_of_nullterm_char_ptr char_ptr =
-  let open Ctypes in
-  let rec loop acc p =
-    if is_null p || Char.equal (!@ p) '\000'
-    then List.rev acc |> String.of_char_list
-    else loop (!@ p :: acc) (p +@ 1)
-  in
-  loop [] char_ptr
 
 let zero_bytes ctyp ~length p =
   let int_ptr = Ctypes.(coerce (ptr ctyp) (ptr uint8_t) p) in
@@ -57,9 +46,9 @@ let string_to_ptr ctyp s =
 let string_to_sized_buff ctyp s =
   string_to_ptr ctyp s, size_of_int (String.length s)
 
-let non_empty_string ?(label="String") str =
-  if String.length str > 0
-  then Result.return str
+let non_empty_string ?(label="String") s =
+  if String.length s > 0
+  then Result.return s
   else Result.fail (`ValueError (label ^ " can't be empty."))
 
 module UTF8 = struct
