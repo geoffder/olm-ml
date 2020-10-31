@@ -98,8 +98,14 @@ module Decryption : sig
 
   (** [decrypt t msg]
 
-      Decrypts a previously encrypted pk [msg] into plaintext with [t]. *)
-  val decrypt : t -> Message.t -> (string, [> OlmError.t ]) result
+      Decrypts a previously encrypted pk [msg] into plaintext with [t]. Invalid
+      unicode characters are replaced with [Uutf.u_rep] unless
+      [ignore_unicode_errors] is set to true. *)
+  val decrypt
+    :  ?ignore_unicode_errors:bool
+    -> t
+    -> Message.t
+    -> (string, [> OlmError.t | `UnicodeError ]) result
 
   (** [private_key t]
 

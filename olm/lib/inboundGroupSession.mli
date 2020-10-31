@@ -46,8 +46,9 @@ val from_pickle : ?pass:string -> string -> (t, [> OlmError.t | `ValueError of s
 (** [decrypt t ciphertext]
 
     Returns a tuple of the plain-text decrypted from [ciphertext] by [t] and the
-    message index of the decrypted message or an error on failure. Possible
-    errors include:
+    message index of the decrypted message or an error on failure. Invalid unicode
+    characters are replaced with [Uutf.u_rep] unless [ignore_unicode_errors] is
+    set to true. Possible olm errors include:
 
     * [`InvalidBase64]       if the message is not valid base64
     * [`BadMessageVersion]   if the message was encrypted with an unsupported
@@ -57,7 +58,11 @@ val from_pickle : ?pass:string -> string -> (t, [> OlmError.t | `ValueError of s
     * [`UnknownMessageIndex] if we do not have a session key
         corresponding to the message's index (i.e., it was sent before
         the session key was shared with us) *)
-val decrypt : t -> string -> (string * int, [> OlmError.t | `ValueError of string ]) result
+val decrypt
+  :  ?ignore_unicode_errors:bool
+  -> t
+  -> string
+  -> (string * int, [> OlmError.t | `ValueError of string | `UnicodeError ]) result
 
 (** [id t]
 

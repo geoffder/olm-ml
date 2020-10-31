@@ -131,7 +131,7 @@ module Decryption = struct
     check_error t ret >>| fun _ ->
     { t with pubkey = string_of_ptr Ctypes.void ~length:public_key_size key_buf }
 
-  let decrypt t (msg : Message.t) =
+  let decrypt ?ignore_unicode_errors t (msg : Message.t) =
     let key_buf, key_len       = string_to_sized_buff Ctypes.void msg.ephemeral_key in
     let mac_buf, mac_len       = string_to_sized_buff Ctypes.void msg.mac in
     let cipher_buf, cipher_len = string_to_sized_buff Ctypes.void msg.ciphertext in
@@ -142,8 +142,9 @@ module Decryption = struct
       mac_buf    mac_len
       cipher_buf cipher_len
       txt_buf    max_txt_len
-    |> check_error t >>| fun txt_len ->
+    |> check_error t >>= fun txt_len ->
     string_of_ptr_clr Ctypes.void ~length:txt_len txt_buf
+    |> UTF8.recode ?ignore_unicode_errors
 
   let private_key t =
     let key_buf = allocate_bytes_void private_key_size in

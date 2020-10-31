@@ -52,7 +52,7 @@ let from_pickle ?(pass="") pickle =
   check_error t ret >>| fun _ ->
   t
 
-let decrypt t ciphertext =
+let decrypt ?ignore_unicode_errors t ciphertext =
   non_empty_string ~label:"Ciphertext" ciphertext >>= fun _ ->
   let cipher_buf () = string_to_ptr Ctypes.uint8_t ciphertext in (* max len destroys *)
   let cipher_len    = String.length ciphertext |> size_of_int in
@@ -64,8 +64,9 @@ let decrypt t ciphertext =
     (cipher_buf ()) cipher_len
     txt_buf         (size_of_int max_txt_len)
     idx_buf
-  |> check_error t >>| fun txt_len ->
-  let plaintext = string_of_ptr_clr Ctypes.uint8_t ~length:txt_len txt_buf in (* TODO: to unicode? *)
+  |> check_error t >>= fun txt_len ->
+  string_of_ptr_clr Ctypes.uint8_t ~length:txt_len txt_buf
+  |> UTF8.recode ?ignore_unicode_errors >>| fun plaintext ->
   plaintext, Ctypes.(!@ idx_buf |> Unsigned.UInt32.to_int)
 
 let id t =

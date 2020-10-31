@@ -99,12 +99,18 @@ val encrypt : t -> string -> (Message.t, [> OlmError.t | `ValueError of string ]
 
 (** [decrypt t msg]
 
-    Decrypts a [msg] using the session [t]. If the base64 cannot be decoded, the
-    error will be [`InvalidBase64]. [`BadMessageVersion] results if the message
-    was for an unsupported protocol. If the [msg] could not be decoded,
-    [`BadMessageFormat] will result. If the MAC on the message was invalid then
-    the error message will be "BAD_MESSAGE_MAC". *)
-val decrypt : t -> Message.t -> (string, [> OlmError.t | `ValueError of string ]) result
+    Decrypts a [msg] using the session [t]. Invalid unicode characters are
+    replaced with [Uutf.u_rep] unless [ignore_unicode_errors] is set to true. If
+    the base64 cannot be decoded, the error will be [`InvalidBase64].
+    [`BadMessageVersion] results if the message was for an unsupported protocol.
+    If the [msg] could not be decoded, [`BadMessageFormat] will result. If the
+    MAC on the message was invalid then the error message will be
+    "BAD_MESSAGE_MAC". *)
+val decrypt
+  :  ?ignore_unicode_errors:bool
+  -> t
+  -> Message.t
+  -> (string, [> OlmError.t | `ValueError of string | `UnicodeError ]) result
 
 (** [id t]
 

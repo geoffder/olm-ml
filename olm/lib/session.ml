@@ -127,7 +127,7 @@ let encrypt t plaintext =
   let ciphertext = string_of_ptr Ctypes.void ~length:(size_to_int cipher_len) cipher_buf in
   Message.create ciphertext msg_type
 
-let decrypt t msg =
+let decrypt ?ignore_unicode_errors t msg =
   let ciphertext    = Message.ciphertext msg in
   let msg_type      = Message.to_size msg in
   let cipher_buf () = string_to_ptr Ctypes.void ciphertext in (* max len fun destroys *)
@@ -136,8 +136,9 @@ let decrypt t msg =
   |> check_error t >>= fun max_txt_len ->
   let txt_buf = allocate_bytes_void max_txt_len in
   C.Funcs.decrypt t.ses msg_type (cipher_buf ()) cipher_len txt_buf (size_of_int max_txt_len)
-  |> check_error t >>| fun txt_len ->
-  string_of_ptr_clr Ctypes.void ~length:txt_len txt_buf (* TODO: to unicode? *)
+  |> check_error t >>= fun txt_len ->
+  string_of_ptr_clr Ctypes.void ~length:txt_len txt_buf
+  |> UTF8.recode ?ignore_unicode_errors
 
 let id t =
   let id_len = C.Funcs.session_id_length t.ses in
