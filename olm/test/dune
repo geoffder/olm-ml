@@ -2,5 +2,5 @@
  (name olm_test)
  (inline_tests)
  (modules Account_test Pk_test Utility_test Sas_test Session_test Group_session_test)
- (libraries core olm cryptokit)
+ (libraries core olm)
  (preprocess (pps ppx_inline_test)))
