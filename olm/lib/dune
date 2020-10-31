@@ -1,4 +1,4 @@
 (library
  (name olm)
  (public_name olm)
- (libraries core olm.c cryptokit yojson))
+ (libraries core olm.c yojson nocrypto nocrypto.unix))
