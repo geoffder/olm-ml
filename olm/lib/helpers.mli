@@ -13,17 +13,14 @@ end
 
     Create char buffer of size [n_bytes] with optional [finalise] for the
     garbage collector. *)
-val allocate_buf :
-  ?finalise:(char Ctypes.ptr -> unit) -> int -> char Ctypes.ptr
+val allocate_buf : ?finalise:(char Ctypes.ptr -> unit) -> int -> char Ctypes.ptr
 
 (** [finaliser t clear char_ptr]
 
     Create a finalisation closure (accepting the [char_ptr] to finalise) for
     [t], using [clear]. Simply performing the necessary coersion between the
     originally allocated char buffer and the actual type [t]. *)
-val finaliser :
-  'a Ctypes.typ ->
-  ('a Ctypes_static.ptr -> 'b) -> char Ctypes_static.ptr -> unit
+val finaliser : 'a Ctypes.typ -> ('a Ctypes_static.ptr -> 'b) -> char Ctypes_static.ptr -> unit
 
 (** [allocate_bytes_void n_bytes]
 
@@ -56,14 +53,12 @@ val zero_bytes : 'a Ctypes.typ -> length:int -> 'a Ctypes_static.ptr -> unit
 (** [string_of_ptr ctyp ~length p]
 
     Map [p] of size [length] and type [ctyp] to string. *)
-val string_of_ptr :
-  'a Ctypes.typ -> length:int -> 'a Ctypes_static.ptr -> string
+val string_of_ptr : 'a Ctypes.typ -> length:int -> 'a Ctypes_static.ptr -> string
 
 (** [string_of_ptr_clr ctyp ~length p]
 
     [string_of_ptr], but run [zero_bytes] on [p] afterwards. *)
-val string_of_ptr_clr :
-  'a Ctypes.typ -> length:int -> 'a Ctypes_static.ptr -> string
+val string_of_ptr_clr : 'a Ctypes.typ -> length:int -> 'a Ctypes_static.ptr -> string
 
 (** [string_to_ptr ctyp s]
 
@@ -74,8 +69,7 @@ val string_to_ptr : 'a Ctypes.typ -> string -> 'a Ctypes_static.ptr
 
     [string_of_ptr], but also returning the size of the resulting buffer along
     with the pointer in a tuple. *)
-val string_to_sized_buff :
-  'a Ctypes.typ -> string -> 'a Ctypes_static.ptr * Unsigned.size_t
+val string_to_sized_buff : 'a Ctypes.typ -> string -> 'a Ctypes_static.ptr * Unsigned.size_t
 
 (** [non_empty_string ?label s]
 
