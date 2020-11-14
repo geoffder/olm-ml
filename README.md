@@ -1,4 +1,4 @@
-# ocaml-olm
+# olm-ml
 ### OCaml bindings for the Olm cryptographic library.
 
 These bindings provide an OCaml API to the olm and megolm cryptographic ratchets
@@ -18,5 +18,5 @@ organization heavily inspired by [Luv](https://github.com/aantron/luv
 
 ## Documentation:
 Odoc generated docs can be found at
-[here](https://geoffder.github.io/ocaml-olm/olm/index.html "ocaml-olm docs"), or
+[here](https://geoffder.github.io/olm-ml/olm/index.html "ocaml-olm docs"), or
 you may take a look at the `.mli` files themselves.
