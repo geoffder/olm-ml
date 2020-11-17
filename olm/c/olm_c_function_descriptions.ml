@@ -799,4 +799,15 @@ module Descriptions (F : Ctypes.FOREIGN) = struct
        @-> ptr void          (* mac *)
        @-> size_t            (* mac_length *)
        @-> returning size_t) (* olm_error on failure *)
+
+  let sas_calculate_mac_long_kdf =
+    foreign "olm_sas_calculate_mac_long_kdf"
+      (ptr SAS.t             (* sas *)
+       @-> ptr void          (* input *)
+       @-> size_t            (* input_length *)
+       @-> ptr void          (* info *)
+       @-> size_t            (* info_length *)
+       @-> ptr void          (* mac *)
+       @-> size_t            (* mac_length *)
+       @-> returning size_t) (* olm_error on failure *)
 end

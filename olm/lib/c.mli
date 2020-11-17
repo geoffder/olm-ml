@@ -1491,4 +1491,16 @@ module Funcs : sig
     unit Ctypes_static.ptr ->
     Unsigned.size_t ->
     Unsigned.size_t
+
+  (** [sas_calculate_mac_long_kdf sas input input_len info info_len mac mac_len]
+      For compatibility with an old version of Riot. *)
+  val sas_calculate_mac_long_kdf :
+    Types.SAS.t Ctypes_static.ptr ->
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    unit Ctypes_static.ptr ->
+    Unsigned.size_t ->
+    Unsigned.size_t
 end

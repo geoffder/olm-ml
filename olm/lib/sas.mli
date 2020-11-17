@@ -62,3 +62,9 @@ val generate_bytes :
     held in the SAS object [t], for [msg]. [extra_info] is mixed in with when
     generating the MAC. *)
 val calculate_mac : t -> string -> string -> (string, [> OlmError.t ]) result
+
+(** [calculate_mac_long_kdf t msg extra_info]
+
+    For compatibility with an old version of Riot. Should not be used unless
+    compatibility with an older non-tagged Olm version is required. *)
+val calculate_mac_long_kdf : t -> string -> string -> (string, [> OlmError.t ]) result

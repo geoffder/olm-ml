@@ -62,3 +62,12 @@ let calculate_mac t msg extra_info =
   C.Funcs.sas_calculate_mac t.sas msg_buf msg_len info_buf info_len mac_buf mac_len
   |> check_error t >>| fun _ ->
   string_of_ptr Ctypes.void ~length:(size_to_int mac_len) mac_buf
+
+let calculate_mac_long_kdf t msg extra_info =
+  let msg_buf, msg_len   = string_to_sized_buff Ctypes.void msg in
+  let info_buf, info_len = string_to_sized_buff Ctypes.void extra_info in
+  let mac_len  = C.Funcs.sas_mac_length t.sas in
+  let mac_buf  = allocate_bytes_void (size_to_int mac_len) in
+  C.Funcs.sas_calculate_mac_long_kdf t.sas msg_buf msg_len info_buf info_len mac_buf mac_len
+  |> check_error t >>| fun _ ->
+  string_of_ptr Ctypes.void ~length:(size_to_int mac_len) mac_buf
